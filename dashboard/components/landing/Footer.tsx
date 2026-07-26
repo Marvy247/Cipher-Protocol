@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Sparkles } from "lucide-react"
+import { Logo } from "@/components/logo"
 
 export function Footer() {
   return (
@@ -8,11 +8,12 @@ export function Footer() {
       style={{ background: "#0a1e1a" }}
     >
       <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-sky-500 to-sky-600 flex items-center justify-center">
-            <Sparkles className="w-4 h-4 text-white" />
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <Logo className="w-8 h-8" />
+          <div className="leading-tight">
+            <span className="block text-white font-bold text-sm tracking-wide">Cipher</span>
+            <span className="block text-white/40 text-[8px] tracking-[0.2em] uppercase font-medium">Protocol</span>
           </div>
-          <span className="font-bold text-sm tracking-tight text-white">Cipher Protocol</span>
         </Link>
 
         <div className="flex items-center gap-8 text-xs text-white/30">
@@ -23,7 +24,7 @@ export function Footer() {
         </div>
 
         <p className="text-xs text-white/20">
-          © {new Date().getFullYear()} Cipher Protocol Protocol
+          © {new Date().getFullYear()} Cipher Protocol
         </p>
       </div>
     </footer>

@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Sparkles, X, Menu } from "lucide-react"
+import { X, Menu } from "lucide-react"
+import { Logo } from "@/components/logo"
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false)
@@ -30,11 +31,12 @@ export function Navbar() {
         } ${mounted ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-3"}`}
         style={{ transitionProperty: "background-color, border-color, opacity, transform" }}
       >
-        <Link href="/" className="flex items-center gap-2.5 shrink-0 group" onClick={closeMenu}>
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500 to-sky-600 flex items-center justify-center shadow-lg shadow-sky-500/20">
-            <Sparkles className="w-5 h-5 text-white" />
+        <Link href="/" className="flex items-center gap-3 shrink-0 group" onClick={closeMenu}>
+          <Logo className="w-9 h-9 group-hover:opacity-80 transition-opacity" />
+          <div className="leading-tight">
+            <span className="block text-white font-bold text-lg tracking-wide">Cipher</span>
+            <span className="block text-white/50 text-[10px] tracking-[0.25em] uppercase font-medium">Protocol</span>
           </div>
-          <span className="font-semibold text-white text-lg leading-none">Cipher Protocol</span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-8 text-sm text-white/60">

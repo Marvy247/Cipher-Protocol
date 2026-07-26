@@ -8,6 +8,7 @@ import {
   Shield, LayoutDashboard, Menu, Settings, LogOut, X,
 } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { LogoFull } from "@/components/logo"
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -86,13 +87,17 @@ export function DashboardLayout({
           )}
           initial={false}
         >
-          <div className="backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] rounded-2xl p-3 flex flex-col items-center gap-3">
+          <div className="backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] rounded-2xl p-3 flex flex-col items-center gap-2">
             <button
               onClick={() => router.replace("/dashboard")}
-              className="w-12 h-12 rounded-xl overflow-hidden shadow-lg shadow-sky-500/20 ring-1 ring-sky-500/20 hover:ring-sky-500/40 transition-all cursor-pointer flex items-center justify-center bg-gradient-to-br from-sky-500 to-sky-600 text-white font-bold text-lg"
+              className="w-12 h-12 rounded-xl overflow-hidden transition-all cursor-pointer flex items-center justify-center hover:scale-105 group"
             >
-              {logo || brandName.charAt(0)}
+              {logo || <LogoFull className="w-9 h-9 group-hover:opacity-80 transition-opacity" />}
             </button>
+            <div className="text-center leading-tight">
+              <span className="block text-[10px] font-bold text-white/90 tracking-wider uppercase">Cipher</span>
+              <span className="block text-[7px] font-medium text-white/40 tracking-[0.2em] uppercase">Protocol</span>
+            </div>
           </div>
 
           <nav className="flex-1 backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] rounded-2xl p-3 flex flex-col justify-center gap-2">

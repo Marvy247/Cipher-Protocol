@@ -1,6 +1,4 @@
 /** @type {import('next').NextConfig} */
-const path = require('path');
-
 const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
@@ -8,7 +6,6 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  outputFileTracingRoot: path.join(__dirname, '../../'),
 };
 
 module.exports = nextConfig;

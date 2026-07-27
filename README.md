@@ -41,6 +41,9 @@
 
 Cipher Protocol is the **first autonomous AML/KYC compliance system purpose-built for stablecoin transactions on Arc**. It deploys five specialized AI agents that work in concert to monitor, score, screen, and report on every transaction in real-time — enabling enterprise adoption of Arc without the prohibitive cost of manual compliance teams.
 
+**For enterprise decision-makers:**
+Compliance is the #1 barrier to institutional stablecoin adoption. Cipher Protocol replaces $2–5M/year manual compliance operations with an autonomous agent system costing <$50K/year — a **49x ROI** — while meeting OFAC, EU, and UN regulatory requirements. [See enterprise case studies →](./docs/CASE_STUDIES.md)
+
 **Key capabilities:**
 
 | Capability | Detail |
@@ -565,6 +568,17 @@ Generated: 10 seconds (vs. 40+ hours for human analysts)
 | `WS /ws` | Real-time stream of transaction alerts and risk alerts |
 
 Full API documentation is available in [`docs/API_REFERENCE.md`](./docs/API_REFERENCE.md).
+
+---
+
+## Enterprise Resources
+
+| Resource | Description |
+|---|---|
+| [**Case Studies**](./docs/CASE_STUDIES.md) | ROI analysis, 3 enterprise scenarios, TAM breakdown |
+| [**Video Script**](./docs/VIDEO_SCRIPT.md) | 3-minute demo narrative with production notes |
+| [**Pitch Deck Prompt**](./docs/DECK_PROMPT.md) | Ready-to-paste Gamma AI prompt for investor deck |
+| [**Demo Video**](./docs/VIDEO_SCRIPT.md) | Step-by-step walkthrough of all 5 agents in action |
 
 ---
 

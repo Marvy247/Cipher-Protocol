@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { Shield, Wallet, TrendingUp, Zap, CheckCircle, LayoutDashboard, AlertTriangle, Ban, Clock } from "lucide-react"
+import { CircleProductUsage } from "@/components/circle-product-usage"
 import { useRealtime } from "@/hooks/use-realtime"
 import { api } from "@/lib/api"
 
@@ -252,6 +253,8 @@ export function DashboardOverview() {
           ))}
         </div>
       </motion.div>
+
+      <CircleProductUsage />
     </div>
   )
 }

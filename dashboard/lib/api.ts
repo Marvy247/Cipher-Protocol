@@ -38,5 +38,17 @@ export const api = {
   async checkSanctions(address: string) {
     const response = await fetch(`${API_BASE_URL}/api/v1/sanctions/check/${address}`);
     return response.json();
+  },
+
+  async getIntegrationUsage(limit = 100, service?: string) {
+    const params = new URLSearchParams({ limit: String(limit) });
+    if (service) params.set('service', service);
+    const response = await fetch(`${API_BASE_URL}/api/v1/integrations/usage?${params}`);
+    return response.json();
+  },
+
+  async getIntegrationSummary() {
+    const response = await fetch(`${API_BASE_URL}/api/v1/integrations/summary`);
+    return response.json();
   }
 };

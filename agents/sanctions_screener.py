@@ -13,6 +13,10 @@ class SanctionsScreenerAgent(BaseAgent):
             "UN": set()
         }
 
+    def add_sanctioned_address(self, list_name: str, address: str):
+        if list_name in self.sanctions_lists:
+            self.sanctions_lists[list_name].add(address.lower())
+
     async def process(self, data: Dict[str, Any]) -> Dict[str, Any]:
         transaction = data.get("transaction", {})
         from_addr = transaction.get("from", "").lower()

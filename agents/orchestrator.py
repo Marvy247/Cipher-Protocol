@@ -23,6 +23,9 @@ class AgentOrchestrator:
         self.nanopayments = NanopaymentsManager()
         self.agent_stack = AgentStackManager()
 
+    def _new_state(self, transaction: Dict[str, Any]) -> ComplianceState:
+        return ComplianceState(transaction)
+
     async def process_transaction(self, transaction: Dict[str, Any]) -> ComplianceState:
         state = ComplianceState(transaction)
 

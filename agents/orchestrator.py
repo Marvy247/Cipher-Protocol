@@ -1,6 +1,8 @@
 from typing import Dict, Any, TypedDict
 import time
 import logging
+from integrations.nanopayments import NanopaymentsManager
+from integrations.agent_stack import AgentStackManager
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +20,8 @@ class ComplianceState:
 class AgentOrchestrator:
     def __init__(self, agents: Dict[str, Any]):
         self.agents = agents
+        self.nanopayments = NanopaymentsManager()
+        self.agent_stack = AgentStackManager()
 
     async def process_transaction(self, transaction: Dict[str, Any]) -> ComplianceState:
         state = ComplianceState(transaction)
@@ -51,7 +55,21 @@ class AgentOrchestrator:
 
         state.final_decision = self._decide(state)
         logger.info(f"Final decision: {state.final_decision}")
+
+        await self._charge_compliance_fee(transaction, state)
+
         return state
+
+    async def _charge_compliance_fee(self, transaction: Dict[str, Any], state: ComplianceState):
+        try:
+            agent_name = "ReportingAgent"
+            wallet = self.agent_stack.get_agent_wallet(agent_name)
+            await self.nanopayments.charge_compliance_fee(
+                agent_wallet=wallet.get("address", "0x..."),
+                tx_hash=transaction.get("hash", "0x...")
+            )
+        except Exception as e:
+            logger.warning(f"Compliance fee charge failed: {e}")
 
     def _decide(self, state: ComplianceState) -> str:
         risk_score = state.risk_result.get("risk_score", 0)

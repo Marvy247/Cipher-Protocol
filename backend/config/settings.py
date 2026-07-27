@@ -23,6 +23,11 @@ class Settings(BaseSettings):
     debug: bool = True
     log_level: str = "INFO"
 
+    usdc_address: str = "0x3600000000000000000000000000000000000000"
+    eurc_address: str = "0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a"
+    gateway_wallet_address: str = "0x0077777d7EBA4688BDeF3E311b846F25870A19B9"
+    gateway_minter_address: str = "0x0022222ABE238Cc2C7Bb1f21003F0a260052475B"
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

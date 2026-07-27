@@ -3,6 +3,7 @@ import logging
 import sys
 sys.path.append('/home/marvi/Documents/ARC')
 from backend.config.settings import settings
+from integrations.usage_tracker import track
 
 logger = logging.getLogger(__name__)
 
@@ -11,6 +12,7 @@ class CircleAppKits:
         self.api_key = settings.kit_key
         logger.info("Circle App Kits initialized")
 
+    @track("CircleAppKits")
     async def get_unified_balance(self, address: str) -> Dict[str, Any]:
         return {
             "address": address,
@@ -23,6 +25,7 @@ class CircleAppKits:
             "last_updated": "2026-07-25T13:00:00Z"
         }
 
+    @track("CircleAppKits")
     async def get_bridge_history(self, address: str, days: int = 30) -> List[Dict]:
         return [
             {
@@ -34,9 +37,11 @@ class CircleAppKits:
             }
         ]
 
+    @track("CircleAppKits")
     async def get_swap_history(self, address: str, days: int = 30) -> List[Dict]:
         return []
 
+    @track("CircleAppKits")
     async def track_send_patterns(self, address: str) -> Dict[str, Any]:
         return {
             "total_sent": 100000,
@@ -45,6 +50,7 @@ class CircleAppKits:
             "average_amount": 20000
         }
 
+    @track("CircleAppKits")
     async def detect_cross_chain_risk(self, address: str) -> Dict[str, Any]:
         balance_data = await self.get_unified_balance(address)
         bridge_history = await self.get_bridge_history(address)

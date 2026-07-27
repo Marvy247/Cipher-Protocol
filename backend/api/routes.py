@@ -91,3 +91,19 @@ async def check_sanctions(address: str):
         "is_sanctioned": False,
         "lists": []
     }
+
+@router.get("/integrations/usage")
+async def get_integration_usage(
+    limit: int = Query(100, le=1000),
+    service: Optional[str] = None
+):
+    from integrations.usage_tracker import tracker
+    return {
+        "records": tracker.get_records(limit=limit, service=service),
+        "total": len(tracker._records) if hasattr(tracker, '_records') else 0
+    }
+
+@router.get("/integrations/summary")
+async def get_integration_summary():
+    from integrations.usage_tracker import tracker
+    return tracker.get_summary()

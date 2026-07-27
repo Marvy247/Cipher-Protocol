@@ -2,6 +2,7 @@ from web3 import Web3
 from eth_account import Account
 from typing import Dict
 import logging
+from integrations.usage_tracker import track
 
 logger = logging.getLogger(__name__)
 
@@ -29,9 +30,11 @@ class AgentStackManager:
             }
             logger.info(f"Created wallet for {name}: {account.address}")
 
+    @track("AgentStackManager")
     def get_agent_wallet(self, agent_name: str) -> Dict:
         return self.agents_wallets.get(agent_name, {})
 
+    @track("AgentStackManager")
     async def fund_agent_wallet(self, agent_name: str, amount: float):
         wallet = self.agents_wallets.get(agent_name)
         if wallet:

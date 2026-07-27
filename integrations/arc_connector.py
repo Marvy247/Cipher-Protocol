@@ -7,6 +7,7 @@ from typing import Dict, List, Optional
 import sys
 sys.path.append('/home/marvi/Documents/ARC')
 from backend.config.settings import settings
+from integrations.usage_tracker import track
 
 logger = logging.getLogger(__name__)
 
@@ -39,9 +40,11 @@ class ArcConnector:
             logger.warning(f"Could not connect to Arc RPC: {e} (running in offline mode)")
             return False
 
+    @track("ArcConnector")
     def get_latest_block(self) -> int:
         return self.w3.eth.block_number
 
+    @track("ArcConnector")
     def get_block_transactions(self, block_number: int) -> List[Dict]:
         try:
             block = self.w3.eth.get_block(block_number, full_transactions=True)
@@ -63,6 +66,7 @@ class ArcConnector:
             "transactionIndex": tx['transactionIndex']
         }
 
+    @track("ArcConnector")
     def get_transaction_receipt(self, tx_hash: str) -> Optional[Dict]:
         try:
             receipt = self.w3.eth.get_transaction_receipt(tx_hash)

@@ -264,7 +264,7 @@ async def run_compliance_check(req: ComplianceCheckRequest):
         "final_decision": final_decision,
         "total_time_s": total_time,
         "nanopayment": nanopayment_result,
-        "explorer_url": f"https://testnet.arcscan.app/tx/{nanopayment_result.get('nanopayment_tx_hash')}" if nanopayment_result.get('nanopayment_tx_hash') else "",
+        "explorer_url": f"https://testnet.arcscan.app/tx/0x{nanopayment_result.get('nanopayment_tx_hash')}" if nanopayment_result.get('nanopayment_tx_hash') else "",
     }
 
 

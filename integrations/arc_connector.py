@@ -1,5 +1,4 @@
 from web3 import Web3
-from web3.middleware import geth_poa_middleware
 from eth_account import Account
 import logging
 import asyncio
@@ -15,7 +14,6 @@ logger = logging.getLogger(__name__)
 class ArcConnector:
     def __init__(self):
         self.w3 = Web3(Web3.HTTPProvider(settings.arc_rpc_url))
-        self.w3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
         try:
             self.account = Account.from_key(settings.wallet_private_key)

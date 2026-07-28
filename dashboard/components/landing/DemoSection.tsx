@@ -277,7 +277,7 @@ export function DemoSection() {
           >
             <Link
               href="/dashboard"
-              className="inline-flex items-center gap-2 bg-white text-[#1a3530] font-semibold text-sm px-7 py-3.5 rounded-full hover:bg-white/90 transition-all duration-200 shadow-lg shadow-white/10"
+              className="inline-flex items-center gap-2 bg-sky-500 hover:bg-sky-400 text-white font-semibold text-sm px-7 py-3.5 rounded-full transition-all duration-200 shadow-lg shadow-sky-500/20"
             >
               Launch Dashboard <ArrowRight className="w-4 h-4" />
             </Link>

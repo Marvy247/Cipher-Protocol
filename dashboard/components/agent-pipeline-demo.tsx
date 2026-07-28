@@ -59,6 +59,8 @@ const SCENARIOS = [
   },
 ]
 
+const NANOPAYMENT_TX_HASH = "0x896392d8d78c7dfa71542116829e7ec91680464148d3e6f6129b6c1a9d07c69c"
+
 export function AgentPipelineDemo() {
   const [scenarioIdx, setScenarioIdx] = useState(0)
   const [steps, setSteps] = useState<AgentStep[]>(
@@ -207,13 +209,23 @@ export function AgentPipelineDemo() {
                 {decision}
               </span>
             </div>
-            <button
-              onClick={nextScenario}
-              className="flex items-center gap-1.5 text-xs text-sky-400 hover:text-sky-300 bg-sky-500/10 border border-sky-500/20 px-4 py-2 rounded-full transition-all"
-            >
-              {SCENARIOS[(scenarioIdx + 1) % SCENARIOS.length].label}
-              <ArrowRight className="w-3 h-3" />
-            </button>
+            <div className="flex items-center gap-3">
+              <a
+                href={`https://testnet.arcscan.app/tx/${NANOPAYMENT_TX_HASH}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-sky-400/70 hover:text-sky-300 underline underline-offset-2 decoration-sky-500/30"
+              >
+                View on Arcscan ↗
+              </a>
+              <button
+                onClick={nextScenario}
+                className="flex items-center gap-1.5 text-xs text-sky-400 hover:text-sky-300 bg-sky-500/10 border border-sky-500/20 px-4 py-2 rounded-full transition-all"
+              >
+                {SCENARIOS[(scenarioIdx + 1) % SCENARIOS.length].label}
+                <ArrowRight className="w-3 h-3" />
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

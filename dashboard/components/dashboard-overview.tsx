@@ -5,6 +5,7 @@ import { motion } from "framer-motion"
 import { Shield, Wallet, TrendingUp, Zap, CheckCircle, LayoutDashboard, AlertTriangle, Ban, Clock } from "lucide-react"
 import { CircleProductUsage } from "@/components/circle-product-usage"
 import { AgentPipelineDemo } from "@/components/agent-pipeline-demo"
+import { LiveComplianceCheck } from "@/components/live-compliance-check"
 import { useRealtime } from "@/hooks/use-realtime"
 import { api } from "@/lib/api"
 
@@ -32,7 +33,15 @@ export function DashboardOverview() {
           </h1>
           <p className="text-slate-500 mt-1 text-sm">Real-time AML/KYC transaction monitoring on Arc</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 text-[10px] text-sky-400/60 bg-sky-500/10 border border-sky-500/20 rounded-full px-2.5 py-1">
+            <img
+              src="https://cryptologos.cc/logos/usd-coin-usdc-logo.svg"
+              alt="USDC"
+              className="w-3 h-3"
+            />
+            Powered by Circle
+          </div>
           <div className={`h-2 w-2 rounded-full ${connected ? 'bg-green-500' : 'bg-red-500'}`} />
           <span className="text-xs text-slate-400">{connected ? 'Connected to Arc' : 'Disconnected'}</span>
         </div>
@@ -159,7 +168,14 @@ export function DashboardOverview() {
                        <CheckCircle className="w-4 h-4 text-emerald-400" />}
                     </div>
                     <div>
-                      <p className="text-sm font-mono text-slate-200">{tx.tx_hash?.slice(0, 16)}...</p>
+                      <a
+                        href={`https://testnet.arcscan.app/tx/${tx.tx_hash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-mono text-sky-400 hover:text-sky-300 underline underline-offset-2 decoration-sky-500/30"
+                      >
+                        {tx.tx_hash?.slice(0, 16)}...
+                      </a>
                       <p className="text-xs text-slate-500 mt-0.5">
                         {tx.from?.slice(0, 8)}... → {tx.to?.slice(0, 8)}...
                       </p>
@@ -254,6 +270,8 @@ export function DashboardOverview() {
           ))}
         </div>
       </motion.div>
+
+      <LiveComplianceCheck />
 
       <AgentPipelineDemo />
 

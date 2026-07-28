@@ -50,5 +50,14 @@ export const api = {
   async getIntegrationSummary() {
     const response = await fetch(`${API_BASE_URL}/api/v1/integrations/summary`);
     return response.json();
+  },
+
+  async complianceCheck(type: string = "normal") {
+    const response = await fetch(`${API_BASE_URL}/api/v1/compliance-check`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type }),
+    });
+    return response.json();
   }
 };

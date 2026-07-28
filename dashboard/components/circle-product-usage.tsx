@@ -50,9 +50,19 @@ export function CircleProductUsage() {
       className="rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-xl p-6"
     >
       <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-lg font-bold text-white">Circle Product Usage</h2>
-          <p className="text-xs text-slate-500 mt-0.5">Real-time integration call tracking</p>
+        <div className="flex items-center gap-3">
+          <div>
+            <h2 className="text-lg font-bold text-white">Circle Product Usage</h2>
+            <p className="text-xs text-slate-500 mt-0.5">Real-time integration call tracking</p>
+          </div>
+          <div className="flex items-center gap-1.5 text-[10px] text-sky-400/60 bg-sky-500/10 border border-sky-500/20 rounded-full px-2.5 py-1">
+            <img
+              src="https://cryptologos.cc/logos/usd-coin-usdc-logo.svg"
+              alt="USDC"
+              className="w-3 h-3"
+            />
+            Powered by Circle
+          </div>
         </div>
         <div className="flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-3 py-1.5">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />

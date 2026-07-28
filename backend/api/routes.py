@@ -2,6 +2,8 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
+import time
+import asyncio
 from data.transaction_store import TransactionStore
 from agents.orchestrator import AgentOrchestrator
 from scripts.demo_data import generate_demo_transaction
@@ -134,6 +136,172 @@ async def get_integration_usage(
 async def get_integration_summary():
     from integrations.usage_tracker import tracker
     return tracker.get_summary()
+
+
+class ComplianceCheckRequest(BaseModel):
+    type: str = "normal"
+
+
+@router.post("/compliance-check")
+async def run_compliance_check(req: ComplianceCheckRequest):
+    if not router.orchestrator:
+        raise HTTPException(status_code=503, detail="Orchestrator not ready")
+    if req.type not in ("normal", "suspicious", "sanctioned"):
+        raise HTTPException(status_code=400, detail="Invalid type. Choose: normal, suspicious, sanctioned")
+
+    tx_type = req.type
+    tx = generate_demo_transaction(tx_type)
+
+    if tx_type == "sanctioned":
+        router.orchestrator.agents["sanctions"].add_sanctioned_address("OFAC", tx["to"])
+
+    agent_steps = []
+    start = time.time()
+
+    t0 = time.time()
+    monitor_result = await router.orchestrator.agents["monitor"].process(tx)
+    agent_steps.append({
+        "name": "Transaction Monitor",
+        "icon": "🔍",
+        "duration": round(time.time() - t0, 3),
+        "output": _summarize_monitor(tx, monitor_result),
+    })
+
+    t0 = time.time()
+    risk_result = await router.orchestrator.agents["risk_scorer"].process({
+        "transaction": tx,
+        "monitor_result": monitor_result,
+    })
+    agent_steps.append({
+        "name": "Risk Scorer",
+        "icon": "📊",
+        "duration": round(time.time() - t0, 3),
+        "output": _summarize_risk(risk_result),
+    })
+
+    t0 = time.time()
+    cross_chain_result = await router.orchestrator.agents["cross_chain"].process({
+        "transaction": tx,
+        "risk_result": risk_result,
+    })
+    agent_steps.append({
+        "name": "Cross-Chain Intel",
+        "icon": "🌐",
+        "duration": round(time.time() - t0, 3),
+        "output": _summarize_cross_chain(cross_chain_result),
+    })
+
+    t0 = time.time()
+    sanctions_result = await router.orchestrator.agents["sanctions"].process({
+        "transaction": tx,
+        "risk_result": risk_result,
+    })
+    agent_steps.append({
+        "name": "Sanctions Screener",
+        "icon": "🛡️",
+        "duration": round(time.time() - t0, 3),
+        "output": _summarize_sanctions(sanctions_result),
+    })
+
+    reporting_data = {
+        "transaction": tx,
+        "risk_result": risk_result,
+        "sanctions_result": sanctions_result,
+        "cross_chain_result": cross_chain_result,
+        "final_decision": "",
+    }
+    t0 = time.time()
+    report_result = await router.orchestrator.agents["reporting"].process(reporting_data)
+    agent_steps.append({
+        "name": "Reporting Agent",
+        "icon": "📄",
+        "duration": round(time.time() - t0, 3),
+        "output": _summarize_report(report_result),
+    })
+
+    sanctioned_sender = sanctions_result.get("from_sanctioned", False)
+    sanctioned_recipient = sanctions_result.get("to_sanctioned", False)
+    risk_score = risk_result.get("risk_score", 0)
+
+    if sanctioned_sender or sanctioned_recipient:
+        final_decision = "BLOCK"
+    elif risk_score >= 80:
+        final_decision = "BLOCK"
+    elif risk_score >= 50:
+        final_decision = "HOLD_FOR_REVIEW"
+    else:
+        final_decision = "APPROVE"
+
+    reporting_data["final_decision"] = final_decision
+    await router.orchestrator.agents["reporting"].process(reporting_data)
+
+    total_time = round(time.time() - start, 3)
+
+    nanopayment_result = await router.orchestrator.nanopayments.charge_compliance_fee(
+        agent_wallet=tx.get("from", "0x..."),
+        tx_hash=tx.get("hash", "0x..."),
+    )
+
+    result_data = {
+        "risk_score": risk_score,
+        "decision": final_decision,
+        "reasons": risk_result.get("reasons", []),
+        "final_decision": final_decision,
+    }
+    if router.store:
+        router.store.add_transaction(tx, result_data)
+
+    return {
+        "transaction": {
+            "hash": tx.get("hash"),
+            "from": tx.get("from"),
+            "to": tx.get("to"),
+            "value": tx.get("value"),
+            "type": tx_type,
+        },
+        "agent_steps": agent_steps,
+        "final_decision": final_decision,
+        "total_time_s": total_time,
+        "nanopayment": nanopayment_result,
+        "explorer_url": f"https://testnet.arcscan.app/tx/{nanopayment_result.get('nanopayment_tx_hash')}" if nanopayment_result.get('nanopayment_tx_hash') else "",
+    }
+
+
+def _summarize_monitor(tx: dict, result: dict) -> str:
+    flags = result.get("flags", [])
+    if flags:
+        return f"Validated. Flags: {', '.join(flags)}. Amount: ${tx.get('value', 0):,.2f}."
+    return f"Validated. Amount: ${tx.get('value', 0):,.2f}. No flags raised."
+
+
+def _summarize_risk(result: dict) -> str:
+    score = result.get("risk_score", 0)
+    reasons = result.get("reasons", [])
+    out = f"Score: {score}/100 ({result.get('risk_level', 'unknown')})."
+    if reasons:
+        out += f" {', '.join(reasons[:3])}"
+    return out
+
+
+def _summarize_cross_chain(result: dict) -> str:
+    score = result.get("combined_risk_score", 0)
+    rec = result.get("recommendation", "")
+    if score > 50:
+        return f"Cross-chain risk: {score}/100. {rec}"
+    return f"No cross-chain risk. Single-chain activity."
+
+
+def _summarize_sanctions(result: dict) -> str:
+    if result.get("to_sanctioned") or result.get("from_sanctioned"):
+        lists = result.get("sanctioned_lists", [])
+        return f"🚫 BLOCKED — {'; '.join(lists)}"
+    return "No sanctions match (OFAC/EU/UN clear)."
+
+
+def _summarize_report(result: dict) -> str:
+    if result.get("sar_filed"):
+        return f"SAR filed: {result.get('sar_id', 'N/A')}"
+    return "No SAR needed. Risk below threshold."
 
 
 @router.get("/demo/seed")

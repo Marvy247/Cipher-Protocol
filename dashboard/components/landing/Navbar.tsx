@@ -54,10 +54,10 @@ export function Navbar() {
 
         <div className="hidden md:flex items-center shrink-0">
           <Link
-            href="/login"
-            className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/40 text-white text-sm font-medium px-5 py-2 rounded-full transition-all duration-200"
+            href="/dashboard"
+            className="inline-flex items-center gap-2 bg-sky-500 hover:bg-sky-400 text-white text-sm font-medium px-5 py-2 rounded-full transition-all duration-200 shadow-lg shadow-sky-500/20"
           >
-            Get Started Free
+            Launch Dashboard
           </Link>
         </div>
 
@@ -86,9 +86,9 @@ export function Navbar() {
           </nav>
           <div className="px-6 mt-4 flex flex-col gap-3">
             <Link
-              href="/login"
+              href="/dashboard"
               onClick={closeMenu}
-              className="w-full text-center py-3.5 rounded-full bg-white text-[#1a3530] font-semibold text-sm"
+              className="w-full text-center py-3.5 rounded-full bg-sky-500 text-white font-semibold text-sm"
             >
               Get Started Free
             </Link>

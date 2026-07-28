@@ -12,6 +12,8 @@ sys.path.append(os.path.join(_base, 'backend'))
 from api.routes import router
 from websocket import ConnectionManager
 from config.settings import settings
+from data.transaction_store import TransactionStore
+from scripts.demo_data import generate_demo_transaction
 from integrations.arc_connector import ArcConnector
 from agents.transaction_monitor import TransactionMonitorAgent
 from agents.risk_scorer import RiskScorerAgent
@@ -28,6 +30,7 @@ manager = ConnectionManager()
 arc_connector = None
 orchestrator = None
 agents = {}
+store = TransactionStore()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -49,6 +52,9 @@ async def lifespan(app: FastAPI):
 
     asyncio.create_task(start_monitoring())
 
+    router.store = store
+    router.orchestrator = orchestrator
+
     logger.info("All agents initialized")
 
     yield
@@ -59,13 +65,16 @@ async def start_monitoring():
     async def process_tx(transaction):
         try:
             result = await orchestrator.process_transaction(transaction)
+            result_data = {
+                "risk_score": result.risk_result.get("risk_score", 0),
+                "decision": result.final_decision,
+                "reasons": result.risk_result.get("reasons", []),
+                "final_decision": result.final_decision,
+            }
+            store.add_transaction(transaction, result_data)
             await manager.broadcast_transaction_alert({
                 "transaction": transaction,
-                "result": {
-                    "risk_score": result.risk_result.get("risk_score", 0),
-                    "decision": result.final_decision,
-                    "reasons": result.risk_result.get("reasons", [])
-                }
+                "result": result_data,
             })
         except Exception as e:
             logger.error(f"Error processing transaction: {e}")

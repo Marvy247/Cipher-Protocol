@@ -3,6 +3,17 @@ import { api } from '@/lib/api';
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/ws';
 
+function normalizeTx(raw: any): any {
+  const tx = raw.transaction || raw.tx || raw;
+  return {
+    tx_hash: tx.hash || tx.tx_hash || '',
+    from: tx.from || '',
+    to: tx.to || '',
+    value: tx.value || 0,
+    result: raw.result || raw,
+  };
+}
+
 export function useRealtime() {
   const [connected, setConnected] = useState(false);
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -23,7 +34,7 @@ export function useRealtime() {
           try {
             const data = JSON.parse(event.data);
             if (data.type === 'transaction_alert' && data.data) {
-              setTransactions((prev) => [data.data, ...prev].slice(0, 100));
+              setTransactions((prev) => [normalizeTx(data.data), ...prev].slice(0, 100));
             } else if (data.type === 'risk_alert' && data.data) {
               setAlerts((prev) => [data.data, ...prev].slice(0, 50));
             }
@@ -51,7 +62,7 @@ export function useRealtime() {
       try {
         const data = await api.getTransactions(20);
         if (data?.transactions) {
-          setTransactions(data.transactions.reverse());
+          setTransactions(data.transactions.map(normalizeTx).reverse());
         }
       } catch {}
     }, 3000);

@@ -240,6 +240,7 @@ async def run_compliance_check(req: ComplianceCheckRequest):
     nanopayment_result = await router.orchestrator.nanopayments.charge_compliance_fee(
         agent_wallet=tx.get("from", "0x..."),
         tx_hash=tx.get("hash", "0x..."),
+        live=True,
     )
 
     result_data = {

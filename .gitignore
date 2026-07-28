@@ -40,3 +40,4 @@ compliance.db
 # Build outputs
 dist/
 build/
+*.tsbuildinfo

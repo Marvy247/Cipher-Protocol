@@ -47,8 +47,18 @@ class NanopaymentsManager:
             self._account = Account.from_key(private_key)
 
     @track("NanopaymentsManager")
-    async def charge_compliance_fee(self, agent_wallet: str, tx_hash: str) -> Dict:
+    async def charge_compliance_fee(self, agent_wallet: str, tx_hash: str, live: bool = False) -> Dict:
         logger.info(f"Charging {self.transaction_fee} USDC from {agent_wallet} for tx {tx_hash}")
+
+        if not live or os.getenv("NANOPAYMENT_LIVE_MODE", "").lower() not in ("true", "1"):
+            return {
+                "success": True,
+                "amount": self.transaction_fee,
+                "agent_wallet": agent_wallet,
+                "tx_hash": tx_hash,
+                "nanopayment_tx_hash": None,
+                "gateway_used": False,
+            }
 
         self._ensure_web3()
 

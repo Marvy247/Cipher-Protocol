@@ -58,6 +58,10 @@ async def lifespan(app: FastAPI):
 
     logger.info("All agents initialized")
 
+    logger.info("Seeding demo transactions...")
+    await seed_demo_transactions(orchestrator, store, manager)
+    logger.info(f"Seeded {len(store.transactions)} demo transactions")
+
     yield
 
     logger.info("Shutting down Cipher Protocol...")
@@ -124,6 +128,34 @@ async def websocket_endpoint(websocket: WebSocket):
             await manager.broadcast({"type": "message", "data": data})
     except WebSocketDisconnect:
         manager.disconnect(websocket)
+
+async def seed_demo_transactions(orchestrator, store, manager):
+    scenarios = [
+        ("normal", None),
+        ("suspicious", None),
+        ("sanctioned", None),
+        ("suspicious", "0xMULTICHAINWALLET1234567890123456789012345678"),
+    ]
+    for tx_type, custom_from in scenarios:
+        for _ in range(3):
+            tx = generate_demo_transaction(tx_type)
+            if custom_from:
+                tx["from"] = custom_from
+            if tx_type == "sanctioned":
+                orchestrator.agents["sanctions"].add_sanctioned_address("OFAC", tx["to"])
+            result = await orchestrator.process_transaction(tx)
+            result_data = {
+                "risk_score": result.risk_result.get("risk_score", 0),
+                "decision": result.final_decision,
+                "reasons": result.risk_result.get("reasons", []),
+                "final_decision": result.final_decision,
+            }
+            store.add_transaction(tx, result_data)
+            if manager:
+                await manager.broadcast_transaction_alert({
+                    "transaction": tx,
+                    "result": result_data,
+                })
 
 if __name__ == "__main__":
     uvicorn.run(

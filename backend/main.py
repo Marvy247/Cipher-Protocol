@@ -11,6 +11,7 @@ sys.path.append(os.path.join(_base, 'backend'))
 
 from api.routes import router
 from websocket import ConnectionManager
+from config.settings import settings
 from integrations.arc_connector import ArcConnector
 from agents.transaction_monitor import TransactionMonitorAgent
 from agents.risk_scorer import RiskScorerAgent

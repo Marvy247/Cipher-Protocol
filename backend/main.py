@@ -4,7 +4,10 @@ from contextlib import asynccontextmanager
 import uvicorn
 import asyncio
 import sys
-sys.path.append('/home/marvi/Documents/ARC')
+import os
+_base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(_base)
+sys.path.append(os.path.join(_base, 'backend'))
 
 from api.routes import router
 from websocket import ConnectionManager

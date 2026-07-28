@@ -7,8 +7,9 @@ import { Label } from "@/components/ui/label"
 import {
   Shield, Chrome, Loader2, Mail,
   UserCheck, Ban, FileCheck, CheckCircle, Lock,
-  ArrowRight, Sparkles, Zap, TrendingUp,
+  ArrowRight, Zap, TrendingUp,
 } from "lucide-react"
+import { Logo, LogoFull } from "@/components/logo"
 import { toast } from "sonner"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
@@ -86,11 +87,12 @@ export default function LoginPage() {
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.6 }}
         >
-          <Link href="/" className="flex items-center gap-2 group w-fit">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-500 to-sky-600 flex items-center justify-center shadow-lg shadow-sky-500/20">
-              <Sparkles className="w-5 h-5 text-white" />
+          <Link href="/" className="flex items-center gap-3 group w-fit">
+            <Logo className="w-10 h-10" />
+            <div className="leading-tight">
+              <span className="block text-white font-bold text-2xl tracking-wide">Cipher</span>
+              <span className="block text-white/40 text-[11px] tracking-[0.25em] uppercase font-medium">Protocol</span>
             </div>
-            <span className="font-bold text-2xl tracking-tight text-white">Cipher Protocol</span>
           </Link>
         </motion.div>
 
@@ -173,11 +175,12 @@ export default function LoginPage() {
           transition={{ duration: 0.6 }}
           className="lg:hidden backdrop-blur-xl bg-white/5 border-b border-white/10 px-6 h-16 flex items-center justify-between"
         >
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500 to-sky-600 flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-white" />
+          <Link href="/" className="flex items-center gap-2.5">
+            <LogoFull className="w-8 h-8" />
+            <div className="leading-tight">
+              <span className="block text-white font-bold text-lg tracking-wide">Cipher</span>
+              <span className="block text-white/40 text-[9px] tracking-[0.2em] uppercase font-medium">Protocol</span>
             </div>
-            <span className="font-bold text-xl tracking-tight text-white">Your Brand</span>
           </Link>
           <Link href="/" className="text-sm text-slate-400 hover:text-white">
             <ArrowRight className="w-4 h-4" />
@@ -199,9 +202,9 @@ export default function LoginPage() {
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                  className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-sky-500 to-sky-600 flex items-center justify-center shadow-lg shadow-sky-500/30"
+                  className="mx-auto mb-4 flex items-center justify-center"
                 >
-                  <Sparkles className="w-8 h-8 text-white" />
+                  <Logo className="w-14 h-14" />
                 </motion.div>
                 <motion.h1
                   initial={{ opacity: 0, y: 10 }}

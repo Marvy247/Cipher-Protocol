@@ -1,7 +1,8 @@
 from typing import Dict, Any, List
 import logging
 import sys
-sys.path.append('/home/marvi/Documents/ARC')
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from backend.config.settings import settings
 from integrations.usage_tracker import track
 

@@ -1,7 +1,8 @@
 import sys
 import os
-sys.path.append('/home/marvi/Documents/ARC')
-sys.path.append(os.path.join('/home/marvi/Documents/ARC', 'backend'))
+_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(_root)
+sys.path.append(os.path.join(_root, 'backend'))
 import pytest
 from httpx import AsyncClient, ASGITransport
 from backend.main import app

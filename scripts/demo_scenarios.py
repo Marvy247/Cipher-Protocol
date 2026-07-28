@@ -1,7 +1,8 @@
 import asyncio
 import sys
+import os
 from datetime import datetime
-sys.path.append('/home/marvi/Documents/ARC')
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from integrations.arc_connector import ArcConnector
 from agents.transaction_monitor import TransactionMonitorAgent
 from agents.risk_scorer import RiskScorerAgent

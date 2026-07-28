@@ -5,8 +5,9 @@ with detailed step-by-step reasoning output for each agent.
 
 import asyncio
 import sys
+import os
 import time
-sys.path.append('/home/marvi/Documents/ARC')
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from agents.transaction_monitor import TransactionMonitorAgent
 from agents.risk_scorer import RiskScorerAgent

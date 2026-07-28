@@ -51,8 +51,6 @@ async def lifespan(app: FastAPI):
 
     orchestrator = AgentOrchestrator(agents)
 
-    asyncio.create_task(start_monitoring())
-
     router.store = store
     router.orchestrator = orchestrator
     router.manager = manager
@@ -70,24 +68,8 @@ async def lifespan(app: FastAPI):
     logger.info("Shutting down Cipher Protocol...")
 
 async def start_monitoring():
-    async def process_tx(transaction):
-        try:
-            result = await orchestrator.process_transaction(transaction)
-            result_data = {
-                "risk_score": result.risk_result.get("risk_score", 0),
-                "decision": result.final_decision,
-                "reasons": result.risk_result.get("reasons", []),
-                "final_decision": result.final_decision,
-            }
-            store.add_transaction(transaction, result_data)
-            await manager.broadcast_transaction_alert({
-                "transaction": transaction,
-                "result": result_data,
-            })
-        except Exception as e:
-            logger.error(f"Error processing transaction: {e}")
-
-    await arc_connector.monitor_new_blocks(process_tx)
+    logger.info("Real block monitoring active — transactions are logged but not displayed on dashboard")
+    await arc_connector.monitor_new_blocks(lambda tx: None)
 
 app = FastAPI(
     title="Cipher Protocol API",

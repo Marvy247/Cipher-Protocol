@@ -54,6 +54,7 @@ async def lifespan(app: FastAPI):
 
     router.store = store
     router.orchestrator = orchestrator
+    router.manager = manager
 
     logger.info("All agents initialized")
 

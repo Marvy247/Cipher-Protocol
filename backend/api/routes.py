@@ -162,6 +162,11 @@ async def seed_demo_data():
                 "final_decision": result.final_decision,
             }
             router.store.add_transaction(tx, result_data)
+            if router.manager:
+                await router.manager.broadcast_transaction_alert({
+                    "transaction": tx,
+                    "result": result_data,
+                })
             count += 1
     return {
         "seeded": count,

@@ -40,13 +40,21 @@ export function Navbar() {
         </Link>
 
         <nav className="hidden md:flex items-center gap-8 text-sm text-white/60">
-          {["Home", "Layers", "Features", "About"].map((item) => (
+          {[
+            { label: "Home", href: "#home" },
+            { label: "Layers", href: "#layers" },
+            { label: "Features", href: "#features" },
+            { label: "Demo", href: "#how-it-works" },
+            { label: "Pitch Deck", href: "https://gamma.app/docs/Cipher-Protocol-bkicpxcsyskfyc9", external: true },
+          ].map((item) => (
             <a
-              key={item}
-              href={`#${item.toLowerCase()}`}
+              key={item.label}
+              href={item.href}
+              target={item.external ? "_blank" : undefined}
+              rel={item.external ? "noopener noreferrer" : undefined}
               className="hover:text-white transition-colors duration-200 relative group"
             >
-              {item}
+              {item.label}
               <span className="absolute -bottom-0.5 left-0 w-0 h-px bg-sky-400 group-hover:w-full transition-all duration-300" />
             </a>
           ))}
@@ -73,14 +81,22 @@ export function Navbar() {
       {menuOpen && (
         <div className="fixed inset-0 z-40 flex flex-col pt-[64px] bg-[#0f2420]/97 backdrop-blur-xl md:hidden">
           <nav className="flex flex-col px-6 py-8 gap-1">
-            {["Home", "Layers", "Features", "About"].map((item) => (
+            {[
+              { label: "Home", href: "#home" },
+              { label: "Layers", href: "#layers" },
+              { label: "Features", href: "#features" },
+              { label: "Demo", href: "#how-it-works" },
+              { label: "Pitch Deck", href: "https://gamma.app/docs/Cipher-Protocol-bkicpxcsyskfyc9", external: true },
+            ].map((item) => (
               <a
-                key={item}
-                href={`#${item.toLowerCase()}`}
+                key={item.label}
+                href={item.href}
+                target={item.external ? "_blank" : undefined}
+                rel={item.external ? "noopener noreferrer" : undefined}
                 onClick={closeMenu}
                 className="py-4 text-xl font-light text-white/80 hover:text-white border-b border-white/8 last:border-0 transition-colors"
               >
-                {item}
+                {item.label}
               </a>
             ))}
           </nav>

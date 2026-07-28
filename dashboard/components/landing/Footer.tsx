@@ -20,7 +20,7 @@ export function Footer() {
           <a href="#layers" className="hover:text-white/60 transition-colors">Layers</a>
           <a href="#features" className="hover:text-white/60 transition-colors">Features</a>
           <a href="#how-it-works" className="hover:text-white/60 transition-colors">How It Works</a>
-          <Link href="/login" className="hover:text-white/60 transition-colors">Sign In</Link>
+          <Link href="/dashboard" className="hover:text-white/60 transition-colors">Dashboard</Link>
         </div>
 
         <p className="text-xs text-white/20">

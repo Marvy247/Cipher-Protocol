@@ -1,103 +1,125 @@
-# Cipher Protocol — Demo Video Script
+# Demo Video Script — Cipher Protocol
 
-**Duration:** 3 minutes  
-**Style:** Screen recording with voiceover, clean dark UI  
-**Tone:** Professional, confident, technical but accessible
-
----
-
-## Scene 1: Hook (0:00–0:15)
-
-**Visual:** Cipher Protocol logo animation (shield hexagon with "C" cipher) on dark background. Text fades in: "Autonomous AML/KYC for Arc."
-
-**Voiceover:**
-> "Enterprises want to adopt Arc. But compliance is the barrier. Manual KYC costs millions. Cross-chain investigations take days. Sanctions lists change hourly. Cipher Protocol solves this — with five autonomous agents that monitor, score, screen, and report on every transaction on Arc in under 500 milliseconds."
+**Total length**: 2:45  
+**Tone**: Professional, fast-paced, confident  
+**Music**: Low-energy ambient/cinematic (starts subtle, builds at 1:30)  
+**Delivery**: Clear, steady — no rushing
 
 ---
 
-## Scene 2: The Problem (0:15–0:35)
+## 0:00 – 0:20 | Hook + Problem
 
-**Visual:** Split screen. Left side: Graph showing $2–5M annual compliance cost. Right side: Transaction flow with red X marks showing delays.
+**Visual**: Full-screen landing page at `cipher-protocol.vercel.app`. Hero section visible with "Autonomous AML Compliance for the Arc blockchain" headline. Slowly scroll down to the ROI cards.  
+**Text overlay**: "AML compliance costs fintechs $2–5M per year."
 
-**Voiceover:**
-> "Today, compliance means teams of analysts reviewing every flagged transaction. It takes hours per case. Cross-chain laundering — bridges, mixers, swaps across 8+ chains — is essentially invisible to single-chain monitors. And regulators are demanding real-time controls. The old model doesn't scale to Arc's sub-second settlement."
-
----
-
-## Scene 3: Architecture Overview (0:35–0:55)
-
-**Visual:** Animated diagram showing 5 connected hexagons forming a pipeline. Each lights up sequentially. Arc blockchain icon on the left, decision output (approve/hold/block) on the right.
-
-**Voiceover:**
-> "Cipher Protocol deploys five specialized agents. Each agent has its own wallet via Circle Agent Stack. They communicate through our orchestrator — a deterministic pipeline. Here's how it works."
+**Narrator**:  
+> Every year, fintechs and crypto platforms spend millions on compliance — hiring teams, buying licenses, stitching together sanctions lists.  
+> The cost of being compliant is so high that most startups just... skip it.  
+> We built Cipher Protocol to change that.
 
 ---
 
-## Scene 4: Agent Pipeline — Live Demo (0:55–2:15)
+## 0:20 – 1:00 | The Product
 
-**Visual:** Screen recording of the dashboard's Agent Pipeline Demo component. Camera slowly scrolls through each step as it processes.
+**Visual**: Zoom to the ROI comparison cards. Red card "$2-5M" → green card "<$50K" → glow on "49x ROI".  
+**Visual**: Fade/transition to the dashboard page. Show the full dashboard overview — the 4 stat cards (Transactions, Flagged, Blocked, Processing), the Live Transactions stream on the left, Agent Status on the right.
 
-**Step 1 — Transaction Monitor (0:55–1:05)**
-> "Agent one — Transaction Monitor. It validates the incoming Arc transaction, checking amount, timing, and sender history. For this $5,000 payment: clean. No flags."
+**Narrator**:  
+> Cipher Protocol is the first autonomous AML/KYC layer built natively for the Arc blockchain.  
+> Five specialized AI agents work together to screen every transaction — from monitoring and risk scoring to cross-chain intelligence, sanctions screening, and regulatory reporting.  
+> The result: enterprise-grade compliance at 49x lower cost.
 
-**Step 2 — Risk Scorer (1:05–1:20)**
-> "Agent two — Risk Scorer. It applies our OpenAML-trained XGBoost model. Score: 8 out of 100. Low risk. But now let's see what happens with a suspicious pattern. $150,000 at 3 AM to a new address. Score jumps to 92."
+**Visual**: Scroll down to the "Compliance Pipeline" 5-step visual. Briefly highlight each step.
 
-**Step 3 — Cross-Chain Intel (1:20–1:40)**
-> "Agent three — Cross-Chain Intelligence. This is where Cipher Protocol differentiates. It calls Circle App Kits — Bridge Kit, Swap Kit, Unified Balance — to trace wallet activity across every chain. It detects the sender bridged from a mixing service three hours ago, then swapped USDC for EURC. Thirty points added to risk score. No single-chain system catches this."
-
-**Step 4 — Sanctions Screener (1:40–1:55)**
-> "Agent four — Sanctions Screener. It checks sender and recipient against OFAC, EU, and UN sanctions lists. Real-time. For the normal transaction: clear. For the sanctioned address: instant block."
-
-**Step 5 — Reporting Agent (1:55–2:15)**
-> "Agent five — Reporting Agent. If risk exceeds threshold, it generates a Suspicious Activity Report autonomously. SAR ID, transaction evidence, agent decisions — all filed in under a second. The report is saved to our audit trail and ready for regulator submission."
+**Narrator**:  
+> Each agent operates independently, runs in milliseconds, and leaves a full audit trail.  
+> And every compliance check is settled on-chain using Circle USDC.
 
 ---
 
-## Scene 5: Circle Integration (2:15–2:35)
+## 1:00 – 1:40 | Live Demo — Run a Compliance Check
 
-**Visual:** Dashboard's Circle Product Usage component showing real-time call counts. Zoom into the live counter incrementing.
+**Visual**: Click the "Run Live Compliance Check" button. Show the empty state with the 3 scenario buttons (Normal, Suspicious, Sanctioned). Click "Normal ($5K USDC)". Click the big "Run Live Compliance Check" button.
 
-**Voiceover:**
-> "Every agent call is tracked. Every Circle product used — App Kits for cross-chain intelligence, Agent Stack for autonomous wallets, Nanopayments for per-transaction compliance fees. The dashboard shows live usage: 168 integration calls during this demo, all successful. This is deep Circle product integration, not surface-level mentions."
+**Narrator**:  
+> Let's see it in action.  
+> I'll select a normal $5,000 USDC transaction and run all five agents live.
+
+**Visual**: Watch the agent steps reveal one by one — Monitor completes, Risk Scorer completes, Cross-Chain Intel completes, Sanctions Screener completes, Reporting Agent completes. Show the pulsing "Processing" badge on each current step.
+
+**Narrator**:  
+> The Transaction Monitor parses and validates the input.  
+> The Risk Scorer assigns a risk score — eight out of one hundred, low risk.  
+> Cross-Chain Intel checks for multi-chain layering — none found.  
+> Sanctions Screener checks OFAC, EU, and UN lists — all clear.  
+> The Reporting Agent confirms: no SAR needed.
+
+**Visual**: The decision panel springs in — green APPROVE verdict, $0.001 USDC fee badge, and the big "View Transaction on Arcscan" button.
+
+**Narrator**:  
+> Final decision: APPROVE. Total time: less than half a second.  
+> A $0.001 USDC compliance fee is charged on-chain — settled via Circle.
 
 ---
 
-## Scene 6: Cost & Impact (2:35–2:50)
+## 1:40 – 2:15 | On-Chain Proof
 
-**Visual:** Animated comparison card. Manual: $2–5M/year. Cipher: <$50K/year. ROI badge: 49x.
+**Visual**: Hover over the "View Transaction on Arcscan" button — show the hover glow effect. Click it. The browser opens Arcscan to the real tx page. Show the Arcscan page — the USDC transfer, the from/to addresses, the block confirmation.
 
-**Voiceover:**
-> "The economics: manual compliance costs enterprises $2 to $5 million annually. Cipher Protocol costs less than $50,000. At $0.001 per transaction via Nanopayments, it scales from 1,000 to 10 million transactions without adding headcount. 49x ROI in year one."
+**Narrator**:  
+> Here's the proof — a real USDC transfer on the Arc testnet, confirmed in block 54,111,971.  
+> The sender is our compliance wallet. The recipient is the Cipher Protocol gateway.  
+> Every single compliance check generates this same on-chain proof.
+
+**Visual**: Close Arcscan tab. Back on the dashboard, scroll up to the "Circle Product Usage" section. Show the call counters incrementing.
+
+**Narrator**:  
+> Every Circle integration call is tracked in real-time — App Kits, Nanopayments, Agent Stack, Arc RPC.  
+> Judges can see exactly how many API calls were made, success rates, and latency.  
+> Full transparency into the integration.
 
 ---
 
-## Scene 7: CTA (2:50–3:00)
+## 2:15 – 2:35 | Suspicious & Sanctioned Scenarios
 
-**Visual:** Logo centered. Three links: GitHub, API Docs, Deployment Guide. Text: "Built for the Agentic Economy on Arc."
+**Visual**: Click "Suspicious ($150K)" scenario, then "Run Again". Watch the pipeline run. Show the amber "HOLD_FOR_REVIEW" verdict.
 
-**Voiceover:**
-> "Cipher Protocol — the compliance layer Circle needs for production. Open source, MIT licensed, live on Arc Testnet. Deploy your own agents, or integrate via our API. The agentic economy needs autonomous compliance. We built it."
+**Narrator**:  
+> Let's try a suspicious scenario — $150,000 USDC at 3 AM from a new address.  
+> The Risk Scorer flags it at 92 out of 100. Cross-Chain Intel detects a bridge from a mixer.  
+> Final decision: HOLD_FOR_REVIEW. A SAR is automatically filed.
+
+**Visual**: Click "Sanctioned (OFAC)" scenario, then "Run Again". Show the red "BLOCK" verdict.
+
+**Narrator**:  
+> And if someone tries to send funds to an OFAC-sanctioned address — the pipeline blocks it instantly.  
+> Three scenarios, one pipeline, real results.
+
+---
+
+## 2:35 – 2:45 | Close + CTA
+
+**Visual**: Zoom out to full dashboard. Then fade to the landing page hero with the "Run Live Check" button centered.
+
+**Text overlay**: "cipher-protocol.vercel.app" + "Presented at [hackathon name]"
+
+**Narrator**:  
+> Cipher Protocol — autonomous AML compliance for the Arc blockchain.  
+> Real agents, real on-chain settlements, real compliance.  
+> Try it yourself at the link on screen.
 
 ---
 
 ## Production Notes
 
-**Audio:**
-- Use a professional voiceover artist (or clear, slow narration)
-- Background music: Low, ambient, tech-focused (synth pads, subtle pulse)
+**Audio**: Use a directional lavalier mic. Record in a quiet room with soft furnishings to reduce echo.
 
-**Screen Recording:**
-- Record at 2560x1440, 60fps
-- Cursor movements should be slow and deliberate
-- Zoom into the Agent Pipeline Demo component for the main walkthrough
-- Show the terminal autonomous demo for 5 seconds as a overlay at 1:15
+**Screen recording**: 2560x1440 at 60fps. Cursor should be clearly visible with a highlight halo. Zoom in on UI interactions (button clicks, hover states, Arcscan page).
 
-**Captions:**
-- Add white-on-dark captions for accessibility
-- Highlight key metrics in bold or accent color (cyan)
+**Pacing**: Speak at ~150 words/min. Pause 0.5s between major section transitions (the beat between "Hook" → "Product" → "Demo" → "Proof").
 
-**Thumbnail:**
-- Logo shield on left, code terminal on right
-- Text: "Real-Time AML/KYC on Arc"
-- Subtitle: "5 Autonomous Agents · <500ms · 99% Cost Reduction"
+**Captions**: Add burned-in subtitles (white text with black drop shadow, bottom third). This significantly improves retention, especially for viewers watching without sound.
+
+**B-roll inserts**: If possible, capture a phone recording of someone swiping through the Gamma pitch deck as a 3-second insert during the "cost problem" section.
+
+**Music**: Recommend "Circuitry" by Ben Winwood or "Entropy" by Daniel Deuschle — available on Epidemic Sound / Artlist. Low drone that doesn't compete with narration.

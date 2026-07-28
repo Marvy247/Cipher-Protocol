@@ -14,11 +14,18 @@ function normalizeTx(raw: any): any {
   };
 }
 
+function mergeTxs(existing: any[], incoming: any[]): any[] {
+  const seen = new Set(existing.map((t) => t.tx_hash));
+  const newOnes = incoming.filter((t) => !seen.has(t.tx_hash) && t.tx_hash);
+  return [...newOnes, ...existing].slice(0, 100);
+}
+
 export function useRealtime() {
-  const [connected, setConnected] = useState(false);
+  const [connected, setConnected] = useState(true);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [alerts, setAlerts] = useState<any[]>([]);
   const wsRef = useRef<WebSocket | null>(null);
+  const lastHash = useRef<string>('');
 
   useEffect(() => {
     function connect() {
@@ -34,7 +41,7 @@ export function useRealtime() {
           try {
             const data = JSON.parse(event.data);
             if (data.type === 'transaction_alert' && data.data) {
-              setTransactions((prev) => [normalizeTx(data.data), ...prev].slice(0, 100));
+              setTransactions((prev) => mergeTxs(prev, [normalizeTx(data.data)]));
             } else if (data.type === 'risk_alert' && data.data) {
               setAlerts((prev) => [data.data, ...prev].slice(0, 50));
             }
@@ -62,16 +69,14 @@ export function useRealtime() {
       try {
         const data = await api.getTransactions(20);
         if (data?.transactions) {
-          setTransactions(data.transactions.map(normalizeTx).reverse());
+          setTransactions((prev) => mergeTxs(prev, data.transactions.map(normalizeTx)));
         }
       } catch {}
-    }, 3000);
+    }, 5000);
 
     return () => {
       clearInterval(pollInterval);
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
+      if (wsRef.current) wsRef.current.close();
     };
   }, []);
 

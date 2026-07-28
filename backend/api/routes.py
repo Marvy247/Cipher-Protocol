@@ -136,7 +136,7 @@ async def get_integration_summary():
     return tracker.get_summary()
 
 
-@router.post("/demo/seed")
+@router.get("/demo/seed")
 async def seed_demo_data():
     if not router.orchestrator:
         return {"error": "Orchestrator not initialized", "seeded": 0}

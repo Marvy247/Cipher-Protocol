@@ -1,9 +1,19 @@
-import pandas as pd
-import numpy as np
 from typing import Dict, List
 import logging
-import pickle
 import os
+import csv
+
+try:
+    import pandas as pd
+    HAS_PANDAS = True
+except ImportError:
+    HAS_PANDAS = False
+
+try:
+    import numpy as np
+    HAS_NUMPY = True
+except ImportError:
+    HAS_NUMPY = False
 
 logger = logging.getLogger(__name__)
 
@@ -25,8 +35,13 @@ class OpenAMLAdapter:
         try:
             sanctions_file = "data/openaml_data/sanctioned_addresses.csv"
             if os.path.exists(sanctions_file):
-                df = pd.read_csv(sanctions_file)
-                self.sanctioned_addresses = set(df['address'].str.lower())
+                if HAS_PANDAS:
+                    df = pd.read_csv(sanctions_file)
+                    self.sanctioned_addresses = set(df['address'].str.lower())
+                else:
+                    with open(sanctions_file) as f:
+                        reader = csv.DictReader(f)
+                        self.sanctioned_addresses = {row['address'].lower() for row in reader}
                 logger.info(f"Loaded {len(self.sanctioned_addresses)} sanctioned addresses")
             else:
                 logger.warning("Sanctions file not found, using empty set")

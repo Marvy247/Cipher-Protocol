@@ -51,7 +51,7 @@ export function PipelineSankey() {
         </div>
       </div>
 
-      <div className="w-full overflow-hidden">
+      <div className="w-full overflow-x-auto">
         <Sankey
           data={{ nodes: NODES, links: LINKS }}
           width={1000}

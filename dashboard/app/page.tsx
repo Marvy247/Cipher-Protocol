@@ -5,6 +5,7 @@ import { LayersSection } from "@/components/landing/LayersSection"
 import { FeaturesSection } from "@/components/landing/FeaturesSection"
 import { AboutSection } from "@/components/landing/AboutSection"
 import { DemoSection } from "@/components/landing/DemoSection"
+import { PlaygroundSection } from "@/components/landing/PlaygroundSection"
 import { Footer } from "@/components/landing/Footer"
 
 export default function LandingPage() {
@@ -17,6 +18,7 @@ export default function LandingPage() {
       <FeaturesSection />
       <AboutSection />
       <DemoSection />
+      <PlaygroundSection />
       <Footer />
     </main>
   )

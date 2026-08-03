@@ -2,9 +2,13 @@
 
 import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
-import { Shield, Wallet, TrendingUp, Zap, CheckCircle, LayoutDashboard, AlertTriangle, Ban, Clock } from "lucide-react"
+import { Shield, Wallet, TrendingUp, Zap, CheckCircle, AlertTriangle, Ban, Clock } from "lucide-react"
 import { CircleProductUsage } from "@/components/circle-product-usage"
 import { LiveComplianceCheck } from "@/components/live-compliance-check"
+import { PipelineSankey } from "@/components/pipeline-sankey"
+import { OnChainProof } from "@/components/on-chain-proof"
+import { RevenueChart } from "@/components/revenue-chart"
+import { SanctionsHeatmap } from "@/components/sanctions-heatmap"
 import { useRealtime } from "@/hooks/use-realtime"
 import { api } from "@/lib/api"
 
@@ -233,42 +237,15 @@ export function DashboardOverview() {
         </motion.div>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.55, ease: [0.22, 1, 0.36, 1] }}
-        className="rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-xl p-6"
-      >
-        <div className="flex items-center gap-2 mb-4">
-          <div className="w-8 h-8 rounded-lg bg-sky-500/10 flex items-center justify-center">
-            <LayoutDashboard className="w-4 h-4 text-sky-400" />
-          </div>
-          <h2 className="text-lg font-bold text-white">Compliance Pipeline</h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-          {[
-            { step: 1, title: "Transaction Monitor", desc: "Initial validation & parsing", status: "active" },
-            { step: 2, title: "Risk Scorer", desc: "ML-based risk assessment", status: "active" },
-            { step: 3, title: "Cross-Chain Intel", desc: "Multi-chain risk intelligence", status: "active" },
-            { step: 4, title: "Sanctions Screener", desc: "OFAC/EU/UN list check", status: "active" },
-            { step: 5, title: "Reporting Agent", desc: "Auto SAR generation", status: "active" },
-          ].map(({ step, title, desc, status }) => (
-            <div
-              key={step}
-              className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 transition-all hover:border-sky-500/20 hover:bg-white/[0.04]"
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-5 h-5 rounded-full bg-sky-500/20 flex items-center justify-center">
-                  <span className="text-[10px] font-bold text-sky-400">{step}</span>
-                </div>
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              </div>
-              <h3 className="font-semibold text-sm text-slate-300 mb-1">{title}</h3>
-              <p className="text-xs text-slate-600">{desc}</p>
-            </div>
-          ))}
-        </div>
-      </motion.div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <OnChainProof />
+
+        <RevenueChart />
+      </div>
+
+      <PipelineSankey />
+
+      <SanctionsHeatmap />
 
       <LiveComplianceCheck />
 

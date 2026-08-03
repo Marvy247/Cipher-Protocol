@@ -52,12 +52,31 @@ export const api = {
     return response.json();
   },
 
-  async complianceCheck(type: string = "normal") {
+  async complianceCheck(type: string = "normal", opts: { txHash?: string; simulatePaymentFailure?: boolean } = {}) {
     const response = await fetch(`${API_BASE_URL}/api/v1/compliance-check`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type }),
+      body: JSON.stringify({
+        type,
+        tx_hash: opts.txHash || null,
+        simulate_payment_failure: opts.simulatePaymentFailure || false,
+      }),
     });
+    return response.json();
+  },
+
+  async getNanopaymentProof(limit = 8) {
+    const response = await fetch(`${API_BASE_URL}/api/v1/nanopayments/proof?limit=${limit}`);
+    return response.json();
+  },
+
+  async getNanopaymentRevenue() {
+    const response = await fetch(`${API_BASE_URL}/api/v1/nanopayments/revenue`);
+    return response.json();
+  },
+
+  async getSanctionsHeatmap() {
+    const response = await fetch(`${API_BASE_URL}/api/v1/sanctions/heatmap`);
     return response.json();
   }
 };

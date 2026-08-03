@@ -45,6 +45,7 @@ export function Navbar() {
             { label: "Layers", href: "#layers" },
             { label: "Features", href: "#features" },
             { label: "Demo", href: "#how-it-works" },
+            { label: "Playground", href: "#playground" },
             { label: "Pitch Deck", href: "https://gamma.app/docs/Cipher-Protocol-bkicpxcsyskfyc9", external: true },
           ].map((item) => (
             <a
@@ -86,6 +87,7 @@ export function Navbar() {
               { label: "Layers", href: "#layers" },
               { label: "Features", href: "#features" },
               { label: "Demo", href: "#how-it-works" },
+              { label: "Playground", href: "#playground" },
               { label: "Pitch Deck", href: "https://gamma.app/docs/Cipher-Protocol-bkicpxcsyskfyc9", external: true },
             ].map((item) => (
               <a

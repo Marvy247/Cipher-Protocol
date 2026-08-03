@@ -29,6 +29,7 @@ interface ComplianceCheckResponse {
     nanopayment_tx_hash: string | null
     gateway_used: boolean
   }
+  report_locked?: boolean
   explorer_url: string
 }
 
@@ -48,6 +49,7 @@ const STEP_META = [
 
 export function LiveComplianceCheck() {
   const [scenario, setScenario] = useState<string>("normal")
+  const [simulateFailure, setSimulateFailure] = useState(false)
   const [running, setRunning] = useState(false)
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<ComplianceCheckResponse | null>(null)
@@ -55,7 +57,8 @@ export function LiveComplianceCheck() {
   const [completedSteps, setCompletedSteps] = useState<number[]>([])
   const [decisionVisible, setDecisionVisible] = useState(false)
 
-  const runCheck = useCallback(async () => {
+  const runCheck = useCallback(async (forceFailure?: boolean) => {
+    const failMode = forceFailure !== undefined ? forceFailure : simulateFailure
     setRunning(true)
     setLoading(true)
     setResult(null)
@@ -64,7 +67,7 @@ export function LiveComplianceCheck() {
     setDecisionVisible(false)
 
     try {
-      const data = await api.complianceCheck(scenario)
+      const data = await api.complianceCheck(scenario, { simulatePaymentFailure: failMode })
       setResult(data)
       setLoading(false)
 
@@ -85,7 +88,7 @@ export function LiveComplianceCheck() {
     } finally {
       setRunning(false)
     }
-  }, [scenario])
+  }, [scenario, simulateFailure])
 
   const decisionColors: Record<string, string> = {
     APPROVE: "text-emerald-400 border-emerald-500/30 bg-emerald-500/[0.08]",
@@ -135,6 +138,19 @@ export function LiveComplianceCheck() {
               {s.label}
             </button>
           ))}
+          <button
+            onClick={() => { setSimulateFailure((v) => !v); setResult(null) }}
+            disabled={running}
+            title="Show what happens when the $0.001 USDC nanopayment fails"
+            className={`text-xs px-3 py-1.5 rounded-full border transition-all flex items-center gap-1.5 ${
+              simulateFailure
+                ? "bg-red-500/20 border-red-500/40 text-red-300"
+                : "border-white/[0.08] text-slate-500 hover:text-slate-300"
+            }`}
+          >
+            {simulateFailure ? <Ban className="w-3 h-3" /> : <span className="w-1.5 h-1.5 rounded-full bg-white/20" />}
+            Payment failure
+          </button>
         </div>
       </div>
 
@@ -272,6 +288,57 @@ export function LiveComplianceCheck() {
                   transition={{ type: "spring", stiffness: 200, damping: 20 }}
                   className="mt-6 pt-5 border-t border-white/[0.06]"
                 >
+                  {result.report_locked ? (
+                    <div className="rounded-2xl border-2 border-red-500/30 bg-red-500/[0.06] p-5">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-11 h-11 rounded-xl bg-red-500/15 flex items-center justify-center">
+                            <Ban className="w-5 h-5 text-red-400" />
+                          </div>
+                          <div>
+                            <span className="text-sm text-red-300/70">Payment required</span>
+                            <p className="font-black text-2xl text-red-400">REPORT LOCKED</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-xs text-slate-600">Final decision</span>
+                          <p className="text-sm font-mono text-slate-500">withheld</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 text-xs text-red-300/80 bg-white/[0.03] rounded-xl px-4 py-3 border border-white/[0.06] mb-3">
+                        <img src="https://cryptologos.cc/logos/usd-coin-usdc-logo.svg" alt="" className="w-4 h-4 shrink-0" />
+                        <span>
+                          The <span className="text-white font-medium">${result.nanopayment.amount.toFixed(3)} USDC</span> agent payment
+                          failed — the compliance report stays locked until fees settle on-chain.
+                        </span>
+                      </div>
+
+                      <div className="mt-3 flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 text-[10px] text-slate-600">
+                          <img src="https://cryptologos.cc/logos/usd-coin-usdc-logo.svg" alt="" className="w-3 h-3" />
+                          Pay-per-check enforces autonomous settlement
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => { setSimulateFailure(false); runCheck(false) }}
+                            disabled={running}
+                            className="flex items-center gap-1.5 text-xs text-red-300 hover:text-red-200 bg-red-500/10 border border-red-500/25 px-4 py-2.5 rounded-full transition-all disabled:opacity-50"
+                          >
+                            Retry failed payment
+                          </button>
+                          <button
+                            onClick={() => runCheck(false)}
+                            disabled={running}
+                            className="flex items-center gap-1.5 text-xs text-sky-400 hover:text-sky-300 bg-sky-500/10 border border-sky-500/20 px-5 py-2.5 rounded-full transition-all disabled:opacity-50"
+                          >
+                            Run with payment
+                            <ArrowRight className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
                   <div className={`rounded-2xl border-2 p-5 ${decisionColors[result.final_decision] || "border-white/[0.08]"}`}>
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-3">
@@ -343,6 +410,7 @@ export function LiveComplianceCheck() {
                       </button>
                     </div>
                   </div>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>

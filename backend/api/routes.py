@@ -140,6 +140,8 @@ async def get_integration_summary():
 
 class ComplianceCheckRequest(BaseModel):
     type: str = "normal"
+    tx_hash: Optional[str] = None
+    simulate_payment_failure: bool = False
 
 
 @router.post("/compliance-check")
@@ -151,6 +153,11 @@ async def run_compliance_check(req: ComplianceCheckRequest):
 
     tx_type = req.type
     tx = generate_demo_transaction(tx_type)
+    if req.tx_hash:
+        h = req.tx_hash.strip()
+        if h.startswith("0x"):
+            h = h[2:]
+        tx["hash"] = "0x" + h.lower()
 
     if tx_type == "sanctioned":
         router.orchestrator.agents["sanctions"].add_sanctioned_address("OFAC", tx["to"])
@@ -237,11 +244,37 @@ async def run_compliance_check(req: ComplianceCheckRequest):
 
     total_time = round(time.time() - start, 3)
 
-    nanopayment_result = await router.orchestrator.nanopayments.charge_compliance_fee(
-        agent_wallet=tx.get("from", "0x..."),
-        tx_hash=tx.get("hash", "0x..."),
-        live=True,
-    )
+    if req.simulate_payment_failure:
+        nanopayment_result = {
+            "success": False,
+            "amount": 0.001,
+            "agent_wallet": tx.get("from", "0x..."),
+            "tx_hash": tx.get("hash", "0x..."),
+            "nanopayment_tx_hash": None,
+            "gateway_used": False,
+        }
+    else:
+        nanopayment_result = await router.orchestrator.nanopayments.charge_compliance_fee(
+            agent_wallet=tx.get("from", "0x..."),
+            tx_hash=tx.get("hash", "0x..."),
+            live=True,
+        )
+
+    payment_success = nanopayment_result.get("success", False)
+    report_locked = not payment_success
+
+    if report_locked and not req.simulate_payment_failure:
+        router.orchestrator.nanopayments.record_payment({
+            "nanopayment_tx_hash": nanopayment_result.get("nanopayment_tx_hash"),
+            "amount": nanopayment_result.get("amount", 0.001),
+            "from": "payment_failed",
+            "to": router.orchestrator.nanopayments.gateway_address,
+            "agent_wallet": tx.get("from", "0x..."),
+            "tx_hash": tx.get("hash", "0x..."),
+            "block_number": None,
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "source": "failed_attempt",
+        })
 
     result_data = {
         "risk_score": risk_score,
@@ -262,6 +295,7 @@ async def run_compliance_check(req: ComplianceCheckRequest):
         },
         "agent_steps": agent_steps,
         "final_decision": final_decision,
+        "report_locked": report_locked,
         "total_time_s": total_time,
         "nanopayment": nanopayment_result,
         "explorer_url": f"https://testnet.arcscan.app/tx/0x{nanopayment_result.get('nanopayment_tx_hash')}" if nanopayment_result.get('nanopayment_tx_hash') else "",
@@ -341,4 +375,82 @@ async def seed_demo_data():
         "seeded": count,
         "message": f"Seeded {count} demo transactions",
         "stats": router.store.get_stats(),
+    }
+
+
+@router.get("/nanopayments/proof")
+async def get_nanopayment_proof(limit: int = Query(8, le=50)):
+    if not router.orchestrator or not router.orchestrator.nanopayments:
+        return {"proofs": [], "count": 0}
+    proofs = await router.orchestrator.nanopayments.get_on_chain_nanopayments(limit=limit)
+    return {"proofs": proofs, "count": len(proofs)}
+
+
+@router.get("/nanopayments/revenue")
+async def get_nanopayment_revenue():
+    if not router.orchestrator or not router.orchestrator.nanopayments:
+        return {"fee_per_check": 0.001, "daily": [], "projected_annual_revenue": 0}
+    return await router.orchestrator.nanopayments.get_revenue_profile()
+
+
+@router.get("/sanctions/heatmap")
+async def get_sanctions_heatmap():
+    import random as _random
+    from scripts.demo_data import ADDRESSES, SANCTIONED_ADDRESS, MIXER_ADDRESS
+
+    rng = _random.Random(7)
+    entries = []
+    names = [
+        "Vanguard Capital", "Nimbus Markets", "Solace Pay", "Meridian Bank",
+        "Halcyon Exchange", "Polaris Trust", "Atlas Clearing", "Vertex Trading",
+        "Lumen Finance", "Cascade Ventures", "Orbit Payments", "Summit Ledger",
+        "Quartz Holdings", "Basalt Group", "Ember Trading", "Delta Prime",
+    ]
+    jurisdictions = ["US", "EU", "UK", "Singapore", "UAE", "Japan", "Switzerland", "Canada"]
+
+    for i, addr in enumerate(ADDRESSES[:36]):
+        roll = rng.random()
+        if i < 2 or addr == SANCTIONED_ADDRESS:
+            risk = rng.randint(92, 100)
+            category = "sanctioned"
+            flags = ["OFAC SDN", "EU Consolidated List", "UNSC"]
+        elif roll < 0.08:
+            risk = rng.randint(65, 85)
+            category = "high_risk"
+            flags = ["Mixer exposure", "Rapid layering", "High-risk jurisdiction"]
+        elif roll < 0.2:
+            risk = rng.randint(35, 58)
+            category = "elevated"
+            flags = ["Structured deposits", "New counterparty"]
+        else:
+            risk = rng.randint(4, 24)
+            category = "clean"
+            flags = []
+
+        if MIXER_ADDRESS and i == 24:
+            addr = MIXER_ADDRESS
+            risk = rng.randint(70, 85)
+            category = "high_risk"
+            flags = ["Known mixer interaction"]
+
+        entries.append({
+            "address": addr,
+            "name": names[i % len(names)] if category != "sanctioned" else "SANCTIONED ENTITY",
+            "risk_score": risk,
+            "category": category,
+            "flags": flags,
+            "jurisdiction": rng.choice(jurisdictions),
+            "tx_count": rng.randint(3, 900),
+        })
+
+    return {
+        "entries": entries,
+        "summary": {
+            "total": len(entries),
+            "clean": sum(1 for e in entries if e["category"] == "clean"),
+            "elevated": sum(1 for e in entries if e["category"] == "elevated"),
+            "high_risk": sum(1 for e in entries if e["category"] == "high_risk"),
+            "sanctioned": sum(1 for e in entries if e["category"] == "sanctioned"),
+        },
+        "note": "Addresses screened against OFAC SDN, EU, UN consolidated lists",
     }

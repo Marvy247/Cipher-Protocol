@@ -137,6 +137,36 @@ class NanopaymentsManager:
                 logger.error(f"Failed to check gateway balance: {e}")
         return 0.0
 
+    async def get_onchain_fees_collected(self, blocks: int = 12000) -> float:
+        self._ensure_web3()
+        if not (self._w3 and self._w3.is_connected()):
+            return 0.0
+        try:
+            latest = self._w3.eth.block_number
+            pad = "0x" + "0" * 24 + self.gateway_address[2:]
+            total = 0.0
+            page = 0
+            scanned = 0
+            while page < 4 and scanned < blocks:
+                end = latest - page * 4000
+                start = max(end - 4000, 0)
+                logs = self._w3.eth.get_logs({
+                    "fromBlock": start,
+                    "toBlock": end,
+                    "address": USDC_ADDRESS,
+                    "topics": [TRANSFER_TOPIC, None, pad],
+                })
+                for log in logs:
+                    total += int.from_bytes(log["data"], "big") / 1_000_000
+                scanned += 4000
+                page += 1
+                if len(logs) < 100:
+                    break
+            return round(total, 6)
+        except Exception as e:
+            logger.error(f"on-chain fee tally failed: {e}")
+            return 0.0
+
     def record_payment(self, record: Dict):
         record = dict(record)
         record["recorded_at"] = time.time()
@@ -212,7 +242,12 @@ class NanopaymentsManager:
 
     @track("NanopaymentsManager")
     async def get_revenue_profile(self) -> Dict:
-        balance = await self.get_total_fees_collected()
+        settled_onchain = await self.get_onchain_fees_collected()
+        session_fees = sum(
+            r.get("amount", 0.001) for r in LOCAL_PAYMENTS
+            if r.get("source") == "live_charge"
+        )
+        collected = round(settled_onchain + session_fees, 6)
 
         random.seed(42)
         days = 30
@@ -243,7 +278,7 @@ class NanopaymentsManager:
 
         return {
             "fee_per_check": self.transaction_fee,
-            "total_collected_onchain": round(balance, 6),
+            "total_collected_onchain": collected,
             "today_fees": round(today_fees, 5),
             "daily": daily,
             "checks_per_day": checks_per_day,

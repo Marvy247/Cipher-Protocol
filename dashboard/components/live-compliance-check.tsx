@@ -52,6 +52,7 @@ export function LiveComplianceCheck() {
   const [simulateFailure, setSimulateFailure] = useState(false)
   const [running, setRunning] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string>("")
   const [result, setResult] = useState<ComplianceCheckResponse | null>(null)
   const [currentStep, setCurrentStep] = useState(-1)
   const [completedSteps, setCompletedSteps] = useState<number[]>([])
@@ -61,6 +62,7 @@ export function LiveComplianceCheck() {
     const failMode = forceFailure !== undefined ? forceFailure : simulateFailure
     setRunning(true)
     setLoading(true)
+    setError("")
     setResult(null)
     setCurrentStep(-1)
     setCompletedSteps([])
@@ -68,6 +70,9 @@ export function LiveComplianceCheck() {
 
     try {
       const data = await api.complianceCheck(scenario, { simulatePaymentFailure: failMode })
+      if (!data.agent_steps) {
+        throw new Error(data.detail || data.error || "The compliance engine returned an unexpected response")
+      }
       setResult(data)
       setLoading(false)
 
@@ -82,8 +87,12 @@ export function LiveComplianceCheck() {
       setCurrentStep(-1)
       await new Promise((r) => setTimeout(r, 800))
       setDecisionVisible(true)
-    } catch {
-      setRunning(false)
+    } catch (err: any) {
+      setError(
+        err?.message === "Failed to fetch"
+          ? "Couldn't reach the compliance engine. It may still be starting up — please wait a moment and try again."
+          : err?.message || "The compliance check failed. Please try again."
+      )
       setLoading(false)
     } finally {
       setRunning(false)
@@ -163,6 +172,20 @@ export function LiveComplianceCheck() {
       }`}>
         {!result && !running && !loading ? (
           <div className="flex flex-col items-center justify-center py-12">
+            {error ? (
+              <div className="rounded-xl border border-red-500/30 bg-red-500/[0.08] px-5 py-4 max-w-md w-full mb-6">
+                <p className="text-sm text-red-300 mb-1">⚠️ {error}</p>
+                <p className="text-xs text-slate-500 mb-4">
+                  The dashboard calls the API at <span className="font-mono text-slate-400">/api/v1/compliance-check</span>. If you're running locally, ensure the backend is up on port 8000.
+                </p>
+                <button
+                  onClick={() => runCheck()}
+                  className="text-xs text-red-300 hover:text-red-200 bg-red-500/10 border border-red-500/25 px-4 py-2 rounded-full transition-all"
+                >
+                  Try Again
+                </button>
+              </div>
+            ) : null} 
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-sky-500/15 to-blue-500/15 flex items-center justify-center mb-5 border border-sky-500/20">
               <ScanSearch className="w-7 h-7 text-sky-400" />
             </div>
@@ -170,6 +193,7 @@ export function LiveComplianceCheck() {
             <p className="text-xs text-slate-600 mb-6">5 AI agents will screen the transaction and send $0.001 USDC on-chain</p>
             <button
               onClick={runCheck}
+              disabled={running}
               className="inline-flex items-center gap-2.5 bg-sky-500 hover:bg-sky-400 text-white text-sm font-semibold px-10 py-4 rounded-xl transition-all shadow-lg shadow-sky-500/25 hover:shadow-sky-500/40"
             >
               <Play className="w-4 h-4" />

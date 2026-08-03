@@ -1,6 +1,20 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 45000): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export const api = {
+  async getHealth() {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/health`, {}, 15000);
+    return response.json();
+  },
   async getTransactions(limit = 100) {
     const response = await fetch(`${API_BASE_URL}/api/v1/transactions?limit=${limit}`);
     return response.json();
@@ -53,7 +67,7 @@ export const api = {
   },
 
   async complianceCheck(type: string = "normal", opts: { txHash?: string; simulatePaymentFailure?: boolean } = {}) {
-    const response = await fetch(`${API_BASE_URL}/api/v1/compliance-check`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/compliance-check`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

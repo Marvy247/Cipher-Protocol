@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { CheckCircle, Ban, ArrowRight, Loader2, Shield, ExternalLink, Play, ScanSearch, Search, Gauge, Globe, FileText } from "lucide-react"
 import { api } from "@/lib/api"
@@ -57,6 +57,19 @@ export function LiveComplianceCheck() {
   const [currentStep, setCurrentStep] = useState(-1)
   const [completedSteps, setCompletedSteps] = useState<number[]>([])
   const [decisionVisible, setDecisionVisible] = useState(false)
+  const [engineOnline, setEngineOnline] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    let alive = true
+    const probe = () => {
+      api.getHealth()
+        .then(() => alive && setEngineOnline(true))
+        .catch(() => alive && setEngineOnline(false))
+    }
+    probe()
+    const interval = setInterval(probe, 20000)
+    return () => { alive = false; clearInterval(interval) }
+  }, [])
 
   const runCheck = useCallback(async (forceFailure?: boolean) => {
     const failMode = forceFailure !== undefined ? forceFailure : simulateFailure
@@ -89,7 +102,9 @@ export function LiveComplianceCheck() {
       setDecisionVisible(true)
     } catch (err: any) {
       setError(
-        err?.message === "Failed to fetch"
+        err?.name === "AbortError"
+          ? "The engine is still warming up (it sleeps when idle on the free tier). Wait a few seconds and try again."
+          : err?.message === "Failed to fetch"
           ? "Couldn't reach the compliance engine. It may still be starting up — please wait a moment and try again."
           : err?.message || "The compliance check failed. Please try again."
       )
@@ -133,6 +148,18 @@ export function LiveComplianceCheck() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <div className={`flex items-center gap-1.5 text-[10px] rounded-full px-2.5 py-1 border transition-colors ${
+            engineOnline === null
+              ? "text-slate-500 border-white/[0.08] bg-white/[0.03]"
+              : engineOnline
+              ? "text-emerald-400 border-emerald-500/20 bg-emerald-500/10"
+              : "text-red-400 border-red-500/20 bg-red-500/10"
+          }`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${
+              engineOnline === null ? "bg-slate-500" : engineOnline ? "bg-emerald-400 animate-pulse" : "bg-red-400 animate-pulse"
+            }`} />
+            {engineOnline === null ? "Checking engine..." : engineOnline ? "Engine online" : "Engine offline"}
+          </div>
           {SCENARIOS.map((s) => (
             <button
               key={s.id}

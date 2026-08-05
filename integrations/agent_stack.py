@@ -1,10 +1,31 @@
 from web3 import Web3
 from eth_account import Account
-from typing import Dict
+from typing import Dict, List
 import logging
+import os
 from integrations.usage_tracker import track
 
 logger = logging.getLogger(__name__)
+
+AGENT_NAMES: List[str] = [
+    "TransactionMonitor",
+    "RiskScorer",
+    "CrossChainIntel",
+    "SanctionsScreener",
+    "ReportingAgent",
+]
+
+
+def agent_account(agent_name: str) -> Account:
+    key = os.getenv("WALLET_PRIVATE_KEY")
+    if key:
+        return Account.from_key(Web3.keccak(text=f"{key}:{agent_name}").hex())
+    return Account.create()
+
+
+def agent_wallet_addresses() -> Dict[str, str]:
+    return {name: agent_account(name).address for name in AGENT_NAMES}
+
 
 class AgentStackManager:
     def __init__(self):
@@ -12,16 +33,8 @@ class AgentStackManager:
         self._initialize_agent_wallets()
 
     def _initialize_agent_wallets(self):
-        agent_names = [
-            "TransactionMonitor",
-            "RiskScorer",
-            "CrossChainIntel",
-            "SanctionsScreener",
-            "ReportingAgent"
-        ]
-
-        for name in agent_names:
-            account = Account.create()
+        for name in AGENT_NAMES:
+            account = agent_account(name)
             self.agents_wallets[name] = {
                 "address": account.address,
                 "private_key": account.key.hex(),

@@ -28,6 +28,8 @@ interface ComplianceCheckResponse {
     amount: number
     nanopayment_tx_hash: string | null
     gateway_used: boolean
+    payer_agent?: string
+    payer_address?: string
   }
   report_locked?: boolean
   explorer_url: string
@@ -415,9 +417,28 @@ export function LiveComplianceCheck() {
 
                     <div className="flex items-center gap-2 text-xs text-slate-500 mb-4 bg-white/[0.03] rounded-xl px-4 py-2.5 border border-white/[0.06]">
                       <img src="https://cryptologos.cc/logos/usd-coin-usdc-logo.svg" alt="" className="w-4 h-4 shrink-0" />
-                      <span>
+                      <span className="min-w-0">
                         <span className="text-slate-400">${result.nanopayment.amount.toFixed(3)} USDC</span>
                         <span className="text-slate-600"> compliance fee charged</span>
+                        {result.nanopayment.payer_address && (
+                          <span className="text-slate-600"> — paid by </span>
+                        )}
+                        {result.nanopayment.payer_agent && (
+                          <span className="text-slate-400 font-medium">{result.nanopayment.payer_agent.replace(/([A-Z])/g, " $1").trim()}</span>
+                        )}
+                        {result.nanopayment.payer_address && (
+                          <span className="text-slate-500 font-mono text-[10px]">
+                            {" "}
+                            <a
+                              href={`https://testnet.arcscan.app/address/${result.nanopayment.payer_address}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sky-400/70 hover:text-sky-300 underline underline-offset-2 decoration-sky-500/30"
+                            >
+                              {result.nanopayment.payer_address.slice(0, 8)}...{result.nanopayment.payer_address.slice(-6)}
+                            </a>
+                          </span>
+                        )}
                       </span>
                     </div>
 

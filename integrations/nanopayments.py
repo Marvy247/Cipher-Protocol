@@ -53,8 +53,12 @@ class NanopaymentsManager:
             self._account = Account.from_key(private_key)
 
     @track("NanopaymentsManager")
-    async def charge_compliance_fee(self, agent_wallet: str, tx_hash: str, live: bool = False) -> Dict:
+    async def charge_compliance_fee(self, agent_wallet: str, tx_hash: str, live: bool = False, payer_agent: str = None) -> Dict:
         logger.info(f"Charging {self.transaction_fee} USDC from {agent_wallet} for tx {tx_hash}")
+
+        from integrations.agent_stack import agent_account
+        payer_account = agent_account(payer_agent) if payer_agent else self._account
+        payer_address = payer_account.address if payer_account else agent_wallet
 
         if not live or os.getenv("NANOPAYMENT_LIVE_MODE", "").lower() not in ("true", "1"):
             return {
@@ -64,6 +68,8 @@ class NanopaymentsManager:
                 "tx_hash": tx_hash,
                 "nanopayment_tx_hash": None,
                 "gateway_used": False,
+                "payer_agent": payer_agent,
+                "payer_address": payer_address,
             }
 
         self._ensure_web3()
@@ -71,22 +77,22 @@ class NanopaymentsManager:
         nanopayment_tx_hash = None
         onchain_success = False
 
-        if self._w3 and self._w3.is_connected() and self._account:
+        if self._w3 and self._w3.is_connected() and payer_account:
             try:
                 usdc = self._w3.eth.contract(address=USDC_ADDRESS, abi=USDC_ABI)
-                balance = usdc.functions.balanceOf(self._account.address).call()
+                balance = usdc.functions.balanceOf(payer_account.address).call()
                 amount = int(self.transaction_fee * 1_000_000)
 
                 if balance >= amount:
                     gas_price = self._w3.eth.gas_price
                     tx = usdc.functions.transfer(self.gateway_address, amount).build_transaction({
-                        "from": self._account.address,
-                        "nonce": self._w3.eth.get_transaction_count(self._account.address),
+                        "from": payer_account.address,
+                        "nonce": self._w3.eth.get_transaction_count(payer_account.address),
                         "gas": 100000,
                         "gasPrice": gas_price,
                     })
 
-                    signed = self._account.sign_transaction(tx)
+                    signed = payer_account.sign_transaction(tx)
                     raw = signed.rawTransaction if hasattr(signed, "rawTransaction") else signed.raw_transaction
                     tx_hash_bytes = self._w3.eth.send_raw_transaction(raw)
                     nanopayment_tx_hash = tx_hash_bytes.hex() if isinstance(tx_hash_bytes, bytes) else tx_hash_bytes
@@ -95,13 +101,14 @@ class NanopaymentsManager:
                     onchain_success = receipt["status"] == 1
 
                     if onchain_success:
-                        logger.info(f"Nanopayment confirmed: {nanopayment_tx_hash}")
+                        logger.info(f"Nanopayment confirmed: {nanopayment_tx_hash} (payer: {payer_account.address})")
                         self.record_payment({
                             "nanopayment_tx_hash": nanopayment_tx_hash,
                             "amount": self.transaction_fee,
-                            "from": self._account.address,
+                            "from": payer_account.address,
                             "to": self.gateway_address,
                             "agent_wallet": agent_wallet,
+                            "payer_agent": payer_agent,
                             "tx_hash": tx_hash,
                             "block_number": None,
                             "timestamp": datetime.utcnow().isoformat() + "Z",
@@ -110,7 +117,7 @@ class NanopaymentsManager:
                     else:
                         logger.warning(f"Nanopayment tx reverted: {nanopayment_tx_hash}")
                 else:
-                    logger.warning(f"Insufficient USDC balance: {balance / 1_000_000:.6f}")
+                    logger.warning(f"Insufficient USDC balance for payer {payer_account.address}: {balance / 1_000_000:.6f}")
             except Exception as e:
                 logger.error(f"Nanopayment failed: {e}")
         else:
@@ -123,7 +130,71 @@ class NanopaymentsManager:
             "tx_hash": tx_hash,
             "nanopayment_tx_hash": nanopayment_tx_hash,
             "gateway_used": onchain_success,
+            "payer_agent": payer_agent,
+            "payer_address": payer_address,
         }
+
+    @track("NanopaymentsManager")
+    async def get_usdc_balance(self, address: str) -> float:
+        self._ensure_web3()
+        if self._w3 and self._w3.is_connected():
+            try:
+                usdc = self._w3.eth.contract(address=USDC_ADDRESS, abi=USDC_ABI)
+                balance = usdc.functions.balanceOf(address).call()
+                return balance / 1_000_000
+            except Exception as e:
+                logger.error(f"Failed to check USDC balance for {address}: {e}")
+        return 0.0
+
+    @track("NanopaymentsManager")
+    async def get_tx_count(self, address: str) -> int:
+        self._ensure_web3()
+        if self._w3 and self._w3.is_connected():
+            try:
+                return self._w3.eth.get_transaction_count(address)
+            except Exception as e:
+                logger.error(f"Failed to get tx count for {address}: {e}")
+        return 0
+
+    @track("NanopaymentsManager")
+    async def ensure_agent_wallets_funded(self, min_balance: float = 0.5, top_up: float = 1.0) -> Dict:
+        from integrations.agent_stack import AGENT_NAMES, agent_account
+        self._ensure_web3()
+        results = {}
+        if not (self._w3 and self._w3.is_connected() and self._account):
+            logger.warning("Funding skipped — no operator wallet/Web3 available")
+            return {"funded": [], "skipped": True}
+        usdc = self._w3.eth.contract(address=USDC_ADDRESS, abi=USDC_ABI)
+        for name in AGENT_NAMES:
+            acct = agent_account(name)
+            try:
+                balance = usdc.functions.balanceOf(acct.address).call() / 1_000_000
+                if balance >= min_balance:
+                    results[name] = {"address": acct.address, "balance": balance, "funded": False}
+                    continue
+                amount = int(top_up * 1_000_000)
+                tx = usdc.functions.transfer(acct.address, amount).build_transaction({
+                    "from": self._account.address,
+                    "nonce": self._w3.eth.get_transaction_count(self._account.address),
+                    "gas": 100000,
+                    "gasPrice": self._w3.eth.gas_price,
+                })
+                signed = self._account.sign_transaction(tx)
+                raw = signed.rawTransaction if hasattr(signed, "rawTransaction") else signed.raw_transaction
+                tx_hash = self._w3.eth.send_raw_transaction(raw)
+                receipt = self._w3.eth.wait_for_transaction_receipt(tx_hash, timeout=60)
+                ok = receipt["status"] == 1
+                results[name] = {
+                    "address": acct.address,
+                    "balance_before": balance,
+                    "funded": ok,
+                    "funding_tx_hash": tx_hash.hex() if isinstance(tx_hash, bytes) else tx_hash,
+                }
+                logger.info(f"Funded {name} wallet {acct.address} with {top_up} USDC: tx {tx_hash.hex()}")
+            except Exception as e:
+                logger.error(f"Funding {name} failed: {e}")
+                results[name] = {"address": acct.address, "funded": False, "error": str(e)}
+        return {"funded": results, "skipped": False}
 
     @track("NanopaymentsManager")
     async def get_total_fees_collected(self) -> float:

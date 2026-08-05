@@ -16,10 +16,12 @@ export function DashboardOverview() {
   const { connected, transactions, alerts } = useRealtime()
   const [stats, setStats] = useState<any>(null)
   const [agents, setAgents] = useState<any[]>([])
+  const [wallets, setWallets] = useState<any[]>([])
 
   useEffect(() => {
     api.getOverviewStats().then(setStats)
     api.getAgentsStatus().then((data) => setAgents(data.agents || []))
+    api.getAgentWallets().then((d) => setWallets(d.wallets || [])).catch(() => {})
   }, [])
 
   return (
@@ -217,15 +219,31 @@ export function DashboardOverview() {
           </div>
 
           <div className="space-y-5">
-            {agents.map((agent: any, idx: number) => (
-              <div key={agent.name} className="flex items-center justify-between py-2 border-b border-white/[0.06] last:border-0">
-                <div className="flex items-center gap-2">
-                  <div className={`h-2 w-2 rounded-full ${agent.status === 'active' ? 'bg-emerald-400' : 'bg-red-400'}`} />
-                  <span className="text-sm text-slate-300">{agent.name}</span>
+            {agents.map((agent: any, idx: number) => {
+              const wallet = wallets.find((w: any) => w.display_name === agent.name)
+              return (
+                <div key={agent.name} className="flex items-center justify-between py-2 border-b border-white/[0.06] last:border-0">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className={`h-2 w-2 rounded-full ${agent.status === 'active' ? 'bg-emerald-400' : 'bg-red-400'}`} />
+                    <div className="min-w-0">
+                      <span className="text-sm text-slate-300 block">{agent.name}</span>
+                      {wallet?.address && (
+                        <a
+                          href={wallet.explorer_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[10px] font-mono text-slate-600 hover:text-sky-400 transition-colors"
+                        >
+                          {wallet.address.slice(0, 8)}...{wallet.address.slice(-6)}
+                          {wallet.usdc_balance > 0 ? ` · $${wallet.usdc_balance.toFixed(3)} USDC` : ""}
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                  <span className="text-xs text-slate-500">{agent.uptime}</span>
                 </div>
-                <span className="text-xs text-slate-500">{agent.uptime}</span>
-              </div>
-            ))}
+              )
+            })}
           </div>
 
           <div className="pt-4 mt-4 border-t border-white/[0.06]">

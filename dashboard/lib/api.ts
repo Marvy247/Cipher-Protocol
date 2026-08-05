@@ -90,7 +90,12 @@ export const api = {
   },
 
   async getSanctionsHeatmap() {
-    const response = await fetch(`${API_BASE_URL}/api/v1/sanctions/heatmap`);
+    const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/sanctions/heatmap`);
+    return response.json();
+  },
+
+  async getAgentWallets() {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/agents/wallets`);
     return response.json();
   }
 };

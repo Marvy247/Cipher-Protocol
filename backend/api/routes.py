@@ -245,6 +245,7 @@ async def run_compliance_check(req: ComplianceCheckRequest):
     total_time = round(time.time() - start, 3)
 
     if req.simulate_payment_failure:
+        from integrations.agent_stack import agent_account
         nanopayment_result = {
             "success": False,
             "amount": 0.001,
@@ -252,12 +253,15 @@ async def run_compliance_check(req: ComplianceCheckRequest):
             "tx_hash": tx.get("hash", "0x..."),
             "nanopayment_tx_hash": None,
             "gateway_used": False,
+            "payer_agent": "ReportingAgent",
+            "payer_address": agent_account("ReportingAgent").address,
         }
     else:
         nanopayment_result = await router.orchestrator.nanopayments.charge_compliance_fee(
             agent_wallet=tx.get("from", "0x..."),
             tx_hash=tx.get("hash", "0x..."),
             live=True,
+            payer_agent="ReportingAgent",
         )
 
     payment_success = nanopayment_result.get("success", False)
@@ -384,6 +388,38 @@ async def get_nanopayment_proof(limit: int = Query(8, le=50)):
         return {"proofs": [], "count": 0}
     proofs = await router.orchestrator.nanopayments.get_on_chain_nanopayments(limit=limit)
     return {"proofs": proofs, "count": len(proofs)}
+
+
+@router.get("/agents/wallets")
+async def get_agent_wallets():
+    if not router.orchestrator or not router.orchestrator.nanopayments:
+        return {"wallets": [], "total": 0}
+    from integrations.agent_stack import AGENT_NAMES, agent_account
+    wallets = []
+    for name in AGENT_NAMES:
+        acct = agent_account(name)
+        balance = await router.orchestrator.nanopayments.get_usdc_balance(acct.address)
+        tx_count = await router.orchestrator.nanopayments.get_tx_count(acct.address)
+        wallets.append({
+            "agent": name,
+            "display_name": _agent_display_name(name),
+            "address": acct.address,
+            "usdc_balance": round(balance, 6),
+            "tx_count": tx_count,
+            "explorer_url": f"https://testnet.arcscan.app/address/{acct.address}",
+        })
+    return {"wallets": wallets, "total": len(wallets)}
+
+
+def _agent_display_name(name: str) -> str:
+    mapping = {
+        "TransactionMonitor": "Transaction Monitor",
+        "RiskScorer": "Risk Scorer",
+        "CrossChainIntel": "Cross-Chain Intel",
+        "SanctionsScreener": "Sanctions Screener",
+        "ReportingAgent": "Reporting Agent",
+    }
+    return mapping.get(name, name)
 
 
 @router.get("/nanopayments/revenue")

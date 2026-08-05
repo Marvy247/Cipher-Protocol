@@ -29,8 +29,15 @@ function timeAgo(ts?: string): string {
 export function OnChainProof() {
   const [proofs, setProofs] = useState<Proof[]>([])
   const [error, setError] = useState(false)
+  const [agentLabels, setAgentLabels] = useState<Record<string, string>>({})
 
   useEffect(() => {
+    api.getAgentWallets().then((d) => {
+      const labels: Record<string, string> = {}
+      ;(d.wallets || []).forEach((w: any) => { labels[w.address.toLowerCase()] = w.display_name })
+      setAgentLabels(labels)
+    }).catch(() => {})
+
     const load = () => {
       api.getNanopaymentProof(8).then((d) => {
         if (d.proofs) {
@@ -105,7 +112,12 @@ export function OnChainProof() {
                       <span className="text-xs font-mono text-slate-500">pending confirmation</span>
                     )}
                     <p className="text-[10px] text-slate-600 mt-0.5 truncate">
-                      {p.from ? `${p.from.slice(0, 8)}...${p.from.slice(-6)}` : ""} → Cipher Gateway
+                      {agentLabels[p.from?.toLowerCase()] ? (
+                        <span className="text-sky-400/80 font-medium">{agentLabels[p.from?.toLowerCase()]}</span>
+                      ) : (
+                        p.from ? `${p.from.slice(0, 8)}...${p.from.slice(-6)}` : ""
+                      )}
+                      {" → Cipher Gateway"}
                       {p.block_number ? ` · block ${p.block_number.toLocaleString()}` : ""}
                     </p>
                   </div>

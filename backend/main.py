@@ -62,6 +62,7 @@ async def lifespan(app: FastAPI):
     logger.info(f"Seeded {len(store.transactions)} demo transactions")
 
     asyncio.create_task(continuous_transaction_stream(orchestrator, store, manager))
+    asyncio.create_task(fund_agent_wallets(orchestrator))
 
     yield
 
@@ -113,6 +114,16 @@ async def websocket_endpoint(websocket: WebSocket):
             await manager.broadcast({"type": "message", "data": data})
     except WebSocketDisconnect:
         manager.disconnect(websocket)
+
+async def fund_agent_wallets(orchestrator):
+    try:
+        await asyncio.sleep(5)
+        result = await orchestrator.nanopayments.ensure_agent_wallets_funded()
+        funded = [k for k, v in result.get("funded", {}).items() if v.get("funded")]
+        logger.info(f"Agent wallet funding complete: {len(funded)} funded {funded}")
+    except Exception as e:
+        logger.error(f"Agent wallet funding failed: {e}")
+
 
 async def seed_demo_transactions(orchestrator, store, manager):
     distribution = (

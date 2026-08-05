@@ -97,5 +97,10 @@ export const api = {
   async getAgentWallets() {
     const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/agents/wallets`);
     return response.json();
+  },
+
+  async getArcActivity() {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/arc/activity`);
+    return response.json();
   }
 };

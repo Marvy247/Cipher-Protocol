@@ -23,6 +23,7 @@ from agents.reporting_agent import ReportingAgent
 from agents.orchestrator import AgentOrchestrator
 import random
 import logging
+import collections
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -32,6 +33,7 @@ arc_connector = None
 orchestrator = None
 agents = {}
 store = TransactionStore()
+arc_activity_buffer = collections.deque(maxlen=12)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -54,6 +56,7 @@ async def lifespan(app: FastAPI):
     router.store = store
     router.orchestrator = orchestrator
     router.manager = manager
+    router.arc_activity = arc_activity_buffer
 
     logger.info("All agents initialized")
 
@@ -63,6 +66,7 @@ async def lifespan(app: FastAPI):
 
     asyncio.create_task(continuous_transaction_stream(orchestrator, store, manager))
     asyncio.create_task(fund_agent_wallets(orchestrator))
+    asyncio.create_task(arc_activity_stream(arc_connector, arc_activity_buffer))
 
     yield
 
@@ -123,6 +127,28 @@ async def fund_agent_wallets(orchestrator):
         logger.info(f"Agent wallet funding complete: {len(funded)} funded {funded}")
     except Exception as e:
         logger.error(f"Agent wallet funding failed: {e}")
+
+
+async def arc_activity_stream(connector, buffer):
+    last_seen = None
+    while True:
+        try:
+            latest = connector.get_latest_block()
+            if latest is not None and latest != last_seen:
+                if last_seen is None:
+                    summary = connector.get_block_summary(latest)
+                    if summary:
+                        buffer.appendleft(summary)
+                else:
+                    for b in range(last_seen + 1, latest + 1):
+                        summary = connector.get_block_summary(b)
+                        if summary:
+                            buffer.appendleft(summary)
+                last_seen = latest
+            await asyncio.sleep(2.5)
+        except Exception as e:
+            logger.error(f"Arc activity stream error: {e}")
+            await asyncio.sleep(5)
 
 
 async def seed_demo_transactions(orchestrator, store, manager):

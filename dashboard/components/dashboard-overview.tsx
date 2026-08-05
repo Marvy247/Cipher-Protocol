@@ -9,6 +9,7 @@ import { PipelineSankey } from "@/components/pipeline-sankey"
 import { OnChainProof } from "@/components/on-chain-proof"
 import { RevenueChart } from "@/components/revenue-chart"
 import { SanctionsHeatmap } from "@/components/sanctions-heatmap"
+import { RealArcActivity } from "@/components/real-arc-activity"
 import { useRealtime } from "@/hooks/use-realtime"
 import { api } from "@/lib/api"
 
@@ -260,6 +261,8 @@ export function DashboardOverview() {
 
         <RevenueChart />
       </div>
+
+      <RealArcActivity />
 
       <PipelineSankey />
 

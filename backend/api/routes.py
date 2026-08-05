@@ -390,6 +390,18 @@ async def get_nanopayment_proof(limit: int = Query(8, le=50)):
     return {"proofs": proofs, "count": len(proofs)}
 
 
+@router.get("/arc/activity")
+async def get_arc_activity():
+    blocks = list(router.arc_activity) if getattr(router, "arc_activity", None) else []
+    return {
+        "blocks": blocks,
+        "count": len(blocks),
+        "chain": "Arc Testnet",
+        "chain_id": 5042002,
+        "note": "Live blocks streamed from the Arc Testnet RPC",
+    }
+
+
 @router.get("/agents/wallets")
 async def get_agent_wallets():
     if not router.orchestrator or not router.orchestrator.nanopayments:

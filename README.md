@@ -50,10 +50,12 @@ Compliance is the #1 barrier to institutional stablecoin adoption. Cipher Protoc
 |---|---|
 | **Real-time monitoring** | Sub-500ms processing per transaction |
 | **Risk scoring** | ML-powered (OpenAML) scores from 0–100 |
-| **Cross-chain intel** | Tracks wallet activity across 8+ chains via Circle App Kits |
+| **Cross-chain intel** | Simulated multi-chain risk analysis (live Circle App Kits integration planned) |
 | **Sanctions screening** | OFAC, EU, and UN list checking |
 | **Auto-reporting** | Autonomous SAR generation and filing |
 | **Cost efficiency** | ~99.5% cost reduction vs. traditional compliance |
+
+> **What's real vs. simulated:** The dashboard transaction stream uses demo data to visualize the pipeline, but the **On-Chain Proof** feed, **agent wallets**, and every **$0.001 USDC nanopayment** are real Arc Testnet transactions — each verifiable on Arcscan. Cross-chain App Kits data is simulated until a Circle API key is provisioned.
 
 ---
 
@@ -177,7 +179,7 @@ Applies a machine learning model built on FINOS OpenAML research to compute a ri
 **Files**: [`agents/risk_scorer.py`](./agents/risk_scorer.py), [`ml/`](./ml/)
 
 ### Agent 3: Cross-Chain Intelligence
-Leverages Circle App Kits to trace wallet activity across multiple blockchains. Detects sophisticated laundering patterns that single-chain monitors miss.
+Simulates tracing wallet activity across multiple blockchains (bridge, swap, and send patterns) to detect sophisticated laundering patterns that single-chain monitors miss. Designed to consume Circle App Kits data — live integration pending API access.
 
 > See [Cross-Chain Intelligence](#cross-chain-intelligence) for details.
 
@@ -283,7 +285,7 @@ graph TB
 
 ## Cross-Chain Intelligence
 
-The **Cross-Chain Intelligence Agent** (Agent 3) is the most innovative component of Cipher Protocol. It uses Circle App Kits to build a multi-chain profile for every address involved in a transaction.
+The **Cross-Chain Intelligence Agent** (Agent 3) builds a multi-chain profile for every address involved in a transaction. It is architected around Circle App Kits (Unified Balance, Bridge Kit, Swap Kit, Send Kit); in the current build these queries are simulated with realistic risk heuristics until a Circle API key is provisioned.
 
 ```mermaid
 graph LR
@@ -309,10 +311,10 @@ graph LR
 
 | Pattern | Risk Contribution | Detection Method |
 |---|---|---|
-| Balance fragmented across 5+ chains | +20 | `Unified Balance` shows assets spread thinly |
-| Bridge originating from known mixer | +40 | `Bridge History` traces origin |
-| Swap immediately after bridging | +25 | `Swap Kit` timestamps vs bridge timestamps |
-| High fan-out (1-to-many sends) | +30 | `Send Kit` velocity analysis |
+| Balance fragmented across 5+ chains | +20 | App Kit Unified Balance (simulated) |
+| Bridge originating from known mixer | +40 | App Kit Bridge History (simulated) |
+| Swap immediately after bridging | +25 | App Kit Swap Kit timestamps (simulated) |
+| High fan-out (1-to-many sends) | +30 | Send Kit velocity analysis (simulated) |
 | Structuring (multiple small txs) | +35 | Time-based pattern analysis |
 | Interaction with sanctioned addresses | +50 | Cross-referenced via sanctions lists |
 
@@ -350,9 +352,9 @@ This gives Cipher Protocol **detection capabilities that no single-chain complia
 ### Infrastructure
 | Technology | Purpose |
 |---|---|
-| **Arc Testnet** | Blockchain monitoring target |
-| **Circle Agent Stack** | Agent wallet infrastructure |
-| **Circle App Kits** | Cross-chain data access |
+| **Arc Testnet** | Blockchain monitoring target (real blocks + on-chain fees) |
+| **Circle Agent Stack** | Agent wallet infrastructure (5 funded on-chain wallets) |
+| **Circle App Kits** | Simulated cross-chain data (integration planned) |
 | **Docker Compose** | Local development orchestration |
 | **GitHub Actions** | CI/CD pipeline |
 | **Vercel** | Frontend deployment |

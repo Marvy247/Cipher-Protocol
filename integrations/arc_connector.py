@@ -44,6 +44,21 @@ class ArcConnector:
         return self.w3.eth.block_number
 
     @track("ArcConnector")
+    def get_block_summary(self, block_number: int) -> Optional[Dict]:
+        try:
+            block = self.w3.eth.get_block(block_number)
+            txs = [t.hex() if isinstance(t, bytes) else t for t in block['transactions']]
+            return {
+                "block": block['number'],
+                "timestamp": block['timestamp'],
+                "tx_count": len(txs),
+                "txs": txs[:8],
+            }
+        except Exception as e:
+            logger.error(f"Error fetching block summary {block_number}: {e}")
+            return None
+
+    @track("ArcConnector")
     def get_block_transactions(self, block_number: int) -> List[Dict]:
         try:
             block = self.w3.eth.get_block(block_number, full_transactions=True)
